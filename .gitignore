@@ -1,0 +1,8 @@
+creds/*
+.terraform/*
+*/.terraform/*
+myplan
+kubeconfig*.yaml
+bundles/
+defaults.yaml
+

@@ -1,0 +1,17 @@
+deployRestic: true
+installCRDs: false
+snapshotsEnabled: false
+configuration:
+  provider: gcp
+  backupStorageLocation:
+    name: gcp
+    config:
+      region: "us-east4"
+    bucket: backup-kyoungerjx3-ef0ee5e96f64
+    serviceAccount: velero-sa
+initContainers:
+- name: velero-plugin-for-gcp
+  image: velero/velero-plugin-for-gcp:v1.1.0
+  volumeMounts:
+  - mountPath: /target
+    name: plugins

@@ -1,0 +1,118 @@
+customLdifFiles:
+  main.ldif: |
+    # define people and groups as category
+    dn: ou=People, dc=example,dc=org
+    objectclass: top
+    objectclass: organizationalunit
+    ou: People
+
+    dn: ou=Groups, dc=example,dc=org
+    objectclass: top
+    objectclass: organizationalunit
+    ou: Groups
+
+    # add groups
+    dn: cn=Administrators, ou=Groups,dc=example,dc=org
+    objectclass: top
+    objectclass: groupOfNames
+    cn: Administrators
+    ou: Groups
+    member: uid=admin, dc=example,dc=org
+    member: uid=kenny, dc=example,dc=org
+    member: uid=User001, ou=People, dc=example,dc=org
+
+    dn: cn=GroupAlpha, ou=Groups,dc=example,dc=org
+    objectclass: top
+    objectclass: groupOfNames
+    cn: GroupAlpha
+    ou: Groups
+    member: uid=User001, ou=People, dc=example,dc=org
+    member: uid=User002, ou=People, dc=example,dc=org
+
+    dn: cn=GroupBeta, ou=Groups,dc=example,dc=org
+    objectclass: top
+    objectclass: groupOfNames
+    cn: GroupBeta
+    ou: Groups
+    member: uid=User002, ou=People, dc=example,dc=org
+
+    dn: cn=GroupDeveloper001, ou=Groups,dc=example,dc=org
+    objectclass: top
+    objectclass: groupOfNames
+    cn: GroupDeveloper001
+    ou: Groups
+    member: uid=User001, ou=People, dc=example,dc=org
+
+    dn: cn=GroupDeveloper002, ou=Groups,dc=example,dc=org
+    objectclass: top
+    objectclass: groupOfNames
+    cn: GroupDeveloper002
+    ou: Groups
+    member: uid=User002, ou=People, dc=example,dc=org
+
+    # add people (users)
+    dn: uid=kenny, ou=People, dc=example,dc=org
+    uid: kenny
+    cn: kenny
+    sn: kenny
+    givenname: kenny
+    objectclass: top
+    objectclass: person
+    objectclass: organizationalPerson
+    objectclass: inetOrgPerson
+    ou: People
+    mail: kenny@example.com
+    userpassword: {{ .Values.ldapGlobalPassword }}
+
+    dn: uid=admin, ou=People, dc=example,dc=org
+    cn: admin
+    sn: admin
+    givenname: admin
+    objectclass: top
+    objectclass: person
+    objectclass: organizationalPerson
+    objectclass: inetOrgPerson
+    ou: People
+    uid: admin
+    mail: admin@example.com
+    userpassword: {{ .Values.ldapGlobalPassword }}
+
+    dn: uid=user001, ou=People, dc=example,dc=org
+    cn: User 001
+    sn: User001
+    givenname: User001
+    objectclass: top
+    objectclass: person
+    objectclass: organizationalPerson
+    objectclass: inetOrgPerson
+    ou: People
+    uid: user001
+    mail: user001@example.com
+    userpassword: {{ .Values.ldapGlobalPassword }}
+
+    dn: uid=user002, ou=People, dc=example,dc=org
+    cn: User 002
+    sn: User002
+    givenname: User002
+    objectclass: top
+    objectclass: person
+    objectclass: organizationalPerson
+    objectclass: inetOrgPerson
+    ou: People
+    uid: user002
+    mail: user002@example.com
+    userpassword: {{ .Values.ldapGlobalPassword }}
+
+    dn: uid=idm, ou=Administrators,dc=example,dc=org
+    objectclass: top
+    objectclass: person
+    objectclass: organizationalPerson
+    objectclass: inetOrgPerson
+    uid: idm
+    cn: IDM Administrator
+    sn: IDM Administrator
+    description: Special LDAP acccount used by the IDM to access the LDAP data.
+    ou: Administrators
+    userPassword: {{ .Values.ldapGlobalPassword }}
+adminPassword: {{ .Values.ldapGlobalPassword }}
+configPassword: {{ .Values.ldapGlobalPassword }}

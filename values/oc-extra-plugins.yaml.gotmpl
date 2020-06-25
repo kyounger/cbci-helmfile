@@ -1,0 +1,34 @@
+resources:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: plugins-dir-pvc
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 50Mi
+  - apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: populate-plugins
+    spec:
+      template:
+        spec:
+          containers:
+          - image: stedolan/jq
+            name: jq
+            command: ["/bin/bash"]
+            args: 
+            - -c
+            - for PLUGIN in {{ .Values.cjoc.initialExtraPlugins | join " " }}; do wget -q -O - $(wget -q -O - 'https://jenkins-updates.cloudbees.com/update-center/envelope-core-oc/update-center.json?version={{ .Values.cjoc.version }}' | sed '1d' | sed '$d' | jq -r '.plugins["'$PLUGIN'"].url') > /plugins/$PLUGIN.jpi; done
+            volumeMounts:
+            - mountPath: /plugins
+              name: plugins
+          volumes:
+          - name: plugins
+            persistentVolumeClaim:
+              claimName: plugins-dir-pvc
+          restartPolicy: Never
+      backoffLimit: 4

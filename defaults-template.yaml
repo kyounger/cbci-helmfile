@@ -1,0 +1,33 @@
+domain:
+ipAddress: 
+adminEmail: 
+https:
+  enabled: false
+cjoc:
+  version:
+  initialCapPlugins:
+  - antisamy-markup-formatter
+  - blueocean-rest
+  - bluesteel-cjoc
+  - cloudbees-jenkins-advisor
+  - cloudbees-ssh-slaves
+  - ldap
+  - matrix-project
+  - operations-center-jnlp-controller
+  - operations-center-rbac
+  - pubsub-light
+  - sse-gateway
+  - suppress-stack-trace
+  initialExtraPlugins:
+  - configuration-as-code
+casc:
+  bundleTemplates:
+  - name: default
+    plugins:
+    jenkins:
+  - name: tmpl-a
+    plugins:
+    jenkins:
+license:
+  key: |
+  cert: |
