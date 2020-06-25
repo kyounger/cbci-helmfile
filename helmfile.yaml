@@ -26,7 +26,6 @@ helmDefaults:
 environments:
   default:
     values:
-    - defaults.yaml
     - ldapGlobalPassword: {{ requiredEnv "ENV_ABSTRACTED_PW" }}
 releases:
 - name: oc-extra-plugins
@@ -46,7 +45,7 @@ releases:
   version: 3.14.0
   values:
   - values/cbcore.yaml.gotmpl
-  #### this might be viable instead of the Job to populate extra plugins
+  #### buggy currently, but this might be viable instead of the Job to populate extra plugins
   # strategicMergePatches:
   # - apiVersion: apps/v1
   #   kind: StatefulSet
