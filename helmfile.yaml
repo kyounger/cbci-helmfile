@@ -42,7 +42,7 @@ releases:
 - name: cbcore
   namespace: cloudbees
   chart: cloudbees/cloudbees-core
-  version: 3.14.0
+  version: 3.15.1
   values:
   - values/cbcore.yaml.gotmpl
   #### buggy currently, but this might be viable instead of the Job to populate extra plugins
