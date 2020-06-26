@@ -15,22 +15,3 @@ resources:
           http01:
             ingress:
               class: nginx
-
-  {{- range .Values.masters as master -}}
-  - apiVersion: cert-manager.io/v1alpha2
-    kind: Namespace
-    metadata:
-      name: letsencrypt-prod
-    spec:
-      acme:
-        email: {{ .master.adminEmail }}
-        server: https://acme-v02.api.letsencrypt.org/directory
-        privateKeySecretRef:
-          name: letsencrypt-prod
-        solvers:
-        # An empty 'selector' means that this solver matches all domains
-        - selector: {}
-          http01:
-            ingress:
-              class: nginx
-  {{- end -}}
