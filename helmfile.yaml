@@ -46,20 +46,6 @@ releases:
   version: 3.15.1
   values:
   - values/cbcore.yaml.gotmpl
-  #### buggy currently, but this might be viable instead of the Job to populate extra plugins
-  # strategicMergePatches:
-  # - apiVersion: apps/v1
-  #   kind: StatefulSet
-  #   metadata:
-  #     name: cjoc
-  #   spec:
-  #     template:
-  #       spec:
-  #         initContainers:
-  #         - name: populate-plugins
-  #           command:
-  #           - sleep
-  #           - "2"
   needs:
   - nginx-ingress/nginx-ingress
   - cert-manager/cert-manager
@@ -76,8 +62,6 @@ releases:
 - name: ldap
   namespace: ldap
   chart: ./local-charts/openldap
-  # chart: stable/openldap
-  # version: 1.2.3
   values:
   - values/ldap.yaml.gotmpl
 - name: ldap-admin
@@ -94,10 +78,3 @@ releases:
   - values/cluster-issuer.yaml.gotmpl
   needs:
   - cert-manager/cert-manager
-# - name: velero
-#   namespace: velero
-#   chart: tanzu/velero
-#   values:
-#   - values/velero.yaml.gotmpl
-#   needs:
-#   - cloudbees/cbcore
