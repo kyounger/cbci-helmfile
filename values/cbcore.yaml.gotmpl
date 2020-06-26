@@ -24,7 +24,7 @@ OperationsCenter:
       value: /var/jenkins_config/jcasc
   ExtraGroovyConfiguration:
     use-rbac.groovy: |
-{{ readFile "groovy/oc-custom-groovy/use-rbac.groovy" | indent 6 }}
+      {{- readFile "groovy/oc-custom-groovy/use-rbac.groovy" | nindent 6 }}
   ExtraConfigMaps:
     - name: apply-license
       data:
@@ -95,15 +95,15 @@ OperationsCenter:
     - name: mm-custom-groovy
       data:
         10-create-folder-on-mm-with-rbac.groovy: |
-{{ readFile "groovy/mm-custom-groovy/create-folder-on-mm-with-rbac.groovy" | indent 10 }}
+          {{- readFile "groovy/mm-custom-groovy/create-folder-on-mm-with-rbac.groovy" | nindent 10 }}
     - name: bundle-template-a
       data:
         jenkins.yaml: |
-{{ readFile "./bundle-templates/tmpl-a/jenkins.yaml" | indent 10 }}
+          {{- readFile "./bundle-templates/tmpl-a/jenkins.yaml" | nindent 10 }}
         plugins.yaml: |
-{{ readFile "./bundle-templates/tmpl-a/plugins.yaml" | indent 10 }}
+          {{- readFile "./bundle-templates/tmpl-a/plugins.yaml" | nindent 10 }}
         plugin-catalog.yaml: |
-{{ readFile "./bundle-templates/tmpl-a/plugin-catalog.yaml" | indent 10 }}
+          {{- readFile "./bundle-templates/tmpl-a/plugin-catalog.yaml" | nindent 10 }}
   ExtraVolumes:
   - name: extra-plugins
     persistentVolumeClaim:
