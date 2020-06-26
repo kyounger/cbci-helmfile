@@ -22,6 +22,9 @@ OperationsCenter:
       value: {{ .Values.ldapGlobalPassword }}
     - name: CASC_JENKINS_CONFIG
       value: /var/jenkins_config/jcasc
+  ExtraGroovyConfiguration:
+    use-rbac.groovy: |
+{{ readFile "groovy/oc-custom-groovy/use-rbac.groovy" | indent 6 }}
   ExtraConfigMaps:
     - name: apply-license
       data:
