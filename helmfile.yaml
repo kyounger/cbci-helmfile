@@ -71,6 +71,8 @@ releases:
   version: v0.15.1
   values:
   - values/cert-manager.yaml.gotmpl
+  needs:
+  - nginx-ingress/nginx-ingress
 - name: ldap
   namespace: ldap
   chart: ./local-charts/openldap
