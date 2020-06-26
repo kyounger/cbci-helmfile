@@ -1,6 +1,18 @@
-domain:
-ipAddress: 
-adminEmail: 
+#required
+domain: example.org
+ipAddress: 1.1.1.1
+adminEmail: admin@example.org
+license:
+  key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    abc 
+    -----END RSA PRIVATE KEY-----
+  cert: |
+    -----BEGIN CERTIFICATE-----
+    xyz
+    -----END CERTIFICATE-----
+---
+#optional (below are the defaults)
 https:
   enabled: false
 cjoc:
@@ -28,6 +40,3 @@ casc:
   - name: tmpl-a
     plugins:
     jenkins:
-license:
-  key: |
-  cert: |
