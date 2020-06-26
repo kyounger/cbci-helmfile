@@ -26,6 +26,7 @@ helmDefaults:
 environments:
   default:
     values:
+    - defaults.yaml
     - ldapGlobalPassword: {{ requiredEnv "ENV_ABSTRACTED_PW" }}
 releases:
 - name: oc-extra-plugins
