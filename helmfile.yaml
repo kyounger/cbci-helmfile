@@ -52,6 +52,7 @@ releases:
   - nginx-ingress/nginx-ingress
   - cert-manager/cert-manager
   - cloudbees/oc-extra-plugins
+  - ldap/ldap
 - name: cert-manager
   namespace: cert-manager
   condition: https.enabled
@@ -63,7 +64,8 @@ releases:
   - nginx-ingress/nginx-ingress
 - name: ldap
   namespace: ldap
-  chart: ./local-charts/openldap
+  chart: stable/openldap
+  version: 1.2.4
   values:
   - values/ldap.yaml.gotmpl
 - name: ldap-admin
@@ -72,6 +74,8 @@ releases:
   version: 0.1.3
   values:
   - values/phpldapadmin.yaml.gotmpl
+  needs:
+  - ldap/ldap
 - name: cm-cluster-issuer
   condition: https.enabled
   namespace: cert-manager
