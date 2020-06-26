@@ -26,8 +26,10 @@ helmDefaults:
 environments:
   default:
     values:
+    - internal-defaults.yaml
     - defaults.yaml
     - ldapGlobalPassword: {{ requiredEnv "ENV_ABSTRACTED_PW" }}
+    - cloudbeesCoreAppVersion: {{ exec "helm" (list "show" "chart" "cloudbees/cloudbees-core" "--version" .Values.cloudbeesCoreChartVersion) | fromYaml | get "appVersion" nil | nindent 8 }}
 releases:
 - name: oc-extra-plugins
   namespace: cloudbees
@@ -43,7 +45,7 @@ releases:
 - name: cbcore
   namespace: cloudbees
   chart: cloudbees/cloudbees-core
-  version: 3.15.1
+  version: {{ .Values.cloudbeesCoreChartVersion }}
   values:
   - values/cbcore.yaml.gotmpl
   needs:

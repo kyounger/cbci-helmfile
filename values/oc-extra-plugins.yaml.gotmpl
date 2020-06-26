@@ -22,7 +22,7 @@ resources:
             command: ["/bin/bash"]
             args: 
             - -c
-            - for PLUGIN in {{ .Values.cjoc.initialExtraPlugins | join " " }}; do wget -q -O - $(wget -q -O - 'https://jenkins-updates.cloudbees.com/update-center/envelope-core-oc/update-center.json?version={{ .Values.cjoc.version }}' | sed '1d' | sed '$d' | jq -r '.plugins["'$PLUGIN'"].url') > /plugins/$PLUGIN.jpi; done
+            - for PLUGIN in {{ .Values.cjoc.initialExtraPlugins | join " " }}; do wget -q -O - $(wget -q -O - 'https://jenkins-updates.cloudbees.com/update-center/envelope-core-oc/update-center.json?version={{ .Values.cloudbeesCoreAppVersion }}' | sed '1d' | sed '$d' | jq -r '.plugins["'$PLUGIN'"].url') > /plugins/$PLUGIN.jpi; done
             volumeMounts:
             - mountPath: /plugins
               name: plugins
