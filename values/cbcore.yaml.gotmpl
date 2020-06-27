@@ -108,6 +108,14 @@ OperationsCenter:
           {{- readFile "./bundle-templates/tmpl-a/plugins.yaml" | nindent 10 }}
         plugin-catalog.yaml: |
           {{- readFile "./bundle-templates/tmpl-a/plugin-catalog.yaml" | nindent 10 }}
+    - name: default
+      data:
+        jenkins.yaml: |
+          {{- readFile "./bundle-templates/default/jenkins.yaml" | nindent 10 }}
+        plugins.yaml: |
+          {{- readFile "./bundle-templates/default/plugins.yaml" | nindent 10 }}
+        plugin-catalog.yaml: |
+          {{- readFile "./bundle-templates/default/plugin-catalog.yaml" | nindent 10 }}
   ExtraVolumes:
   - name: extra-plugins
     persistentVolumeClaim:
@@ -132,6 +140,10 @@ OperationsCenter:
     configMap:
       name: bundle-template-a
       defaultMode: 440
+  - name: default
+    configMap:
+      name: default
+      defaultMode: 440
   ExtraVolumeMounts:
   - name: extra-plugins
     mountPath: /usr/share/jenkins/ref/plugins
@@ -150,4 +162,7 @@ OperationsCenter:
     readOnly: true
   - name: bundle-template-a
     mountPath: /var/jenkins_config/bundle-templates/tmpl-a
+    readOnly: true
+  - name: default
+    mountPath: /var/jenkins_config/bundle-templates/default
     readOnly: true
