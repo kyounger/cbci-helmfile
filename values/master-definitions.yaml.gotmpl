@@ -1,0 +1,27 @@
+resources:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: master-definitions
+  data:
+    masters.yaml: |
+      masters:
+      {{- range get "specificMasters" .Values }}
+      - name: {{ .name }}
+        disk: {{ .disk }}
+        memory: {{ .memory }}
+        cascBundleTemplate: {{ .cascBundleTemplate }}
+        appIds:
+        {{- range get "appIds" . }}
+          - {{ . -}}
+        {{- end -}}
+      {{ end }}
+      {{- range $def := get "manyMasters" .Values -}}
+      {{- range $i := until (get "quantity" $def) }}
+      - name: {{ $def.prefix -}}{{- printf "%04d" (add $i 1) }}
+        disk: {{ $def.template.disk }}
+        memory: {{ $def.template.memory }}
+        cascBundleTemplate: {{ $def.template.cascBundleTemplate }}
+        appIds:
+      {{- end -}}
+      {{- end -}}

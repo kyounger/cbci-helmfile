@@ -36,6 +36,11 @@ releases:
   chart: incubator/raw
   values:
   - values/oc-extra-plugins.yaml.gotmpl
+- name: master-definitions
+  namespace: cloudbees
+  chart: incubator/raw
+  values:
+  - values/master-definitions.yaml.gotmpl
 - name: nginx-ingress
   namespace: nginx-ingress
   chart: stable/nginx-ingress
@@ -52,6 +57,7 @@ releases:
   - nginx-ingress/nginx-ingress
   - cert-manager/cert-manager
   - cloudbees/oc-extra-plugins
+  - cloudbees/master-definitions
   - ldap/ldap
 - name: cert-manager
   namespace: cert-manager
