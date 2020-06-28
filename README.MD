@@ -6,8 +6,12 @@
 4. `cp defaults-template.yaml defaults.yaml`
 5. Edit any values you need to, inserting license, etc.
 6. Run `helmfile template` to see if all is configured correctly to produce the yaml. Not explicitly necessary, but a nice check before running the next step.
-7. Run `helmfile apply`.
+6. Ensure an environment variable named `ENV_ABSTRACTED_PW` is set to some random value and is exported
+7. Run `helmfile apply` (or `export ENV_ABSTRACTED_PW=somerandomvalue helmfile apply` if you don't have the env var exported in your shell)
 8. Wait for the install to finish and log in.
 9. Make an edit to your `defaults.yaml` file and rerun `helmfile apply` to see the changes apply.
 
-Note that `defaults.yaml` is ignored in git.
+### Notes:
+
+- `defaults.yaml` is ignored in git.
+- the ENV_ABSTRACTED_PW value is what defines all passwords in ldap. Once an external credential provider is implemented, this will go away.
