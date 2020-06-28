@@ -27,8 +27,6 @@ OperationsCenter:
       {{- readFile "groovy/oc-custom-groovy/use-rbac.groovy" | nindent 6 }}
     02-enforce-master-checkboxes.groovy: |
       {{- readFile "groovy/oc-custom-groovy/enforce-master-checkboxes.groovy" | nindent 6 }}
-    03-master-provisioner.groovy: |
-      {{- readFile "groovy/oc-custom-groovy/master-provisioner.groovy" | nindent 6 }}
   ExtraConfigMaps:
     - name: apply-license
       data:
