@@ -27,7 +27,7 @@ environments:
   default:
     values:
     - internal-defaults.yaml
-    - defaults.yaml
+    - cloudbees-ci.yaml
     - ldapGlobalPassword: {{ requiredEnv "ENV_ABSTRACTED_PW" }}
     - cloudbeesCoreAppVersion: {{ exec "helm" (list "show" "chart" "cloudbees/cloudbees-core" "--version" .Values.cloudbeesCoreChartVersion) | fromYaml | get "appVersion" nil | nindent 8 }}
 releases:
