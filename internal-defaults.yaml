@@ -17,3 +17,9 @@ cjoc:
   - suppress-stack-trace
   initialExtraPlugins:
   - configuration-as-code
+masters:
+  masterTemplates:
+  masterDefinitions:
+    specificMasters:
+    manyMasters:
+cascBundleTemplates:

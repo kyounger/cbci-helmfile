@@ -6,22 +6,34 @@ resources:
   data:
     masters.yaml: |
       masters:
-      {{- range get "specificMasters" .Values }}
-      - name: {{ .name }}
-        disk: {{ .disk }}
-        memory: {{ .memory }}
-        cascBundleTemplate: {{ .cascBundleTemplate }}
+      {{ $masterTemplates := .Values.masters.masterTemplates }}
+      {{- range $definition := get "specificMasters" .Values.masters.masterDefinitions }}
+      {{- $masterTemplate := get $definition.masterTemplate $masterTemplates }}
+      - name: {{ $definition.name }}
+        disk: {{ $masterTemplate.disk }}
+        memory: {{ $masterTemplate.memory }}
+        cascBundleTemplate: {{ $masterTemplate.cascBundleTemplate }}
         appIds:
         {{- range get "appIds" . }}
           - {{ . -}}
         {{- end -}}
       {{ end }}
-      {{- range $def := get "manyMasters" .Values -}}
-      {{- range $i := until (get "quantity" $def) }}
-      - name: {{ $def.prefix -}}{{- printf "%04d" (add $i 1) }}
-        disk: {{ $def.template.disk }}
-        memory: {{ $def.template.memory }}
-        cascBundleTemplate: {{ $def.template.cascBundleTemplate }}
+      {{- range $definition := get "manyMasters" .Values.masters.masterDefinitions -}}
+      {{- $masterTemplate := get $definition.masterTemplate $masterTemplates }}
+      {{- range $i := until (get "quantity" $definition) }}
+      - name: {{ $definition.prefix -}}{{- printf "%04d" (add $i 1) }}
+        disk: {{ $masterTemplate.disk }}
+        memory: {{ $masterTemplate.memory }}
+        cascBundleTemplate: {{ $masterTemplate.cascBundleTemplate }}
         appIds:
       {{- end -}}
-      {{- end -}}
+      {{ end }}
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: bundle-templates
+  data:
+{{ range get "cascBundleTemplates" .Values }}
+    {{ .name }}.yaml: |
+      {{- .bundle | toYaml | nindent 6 }}
+{{ end }}

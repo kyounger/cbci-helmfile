@@ -32,11 +32,106 @@ cjoc:
   - suppress-stack-trace
   initialExtraPlugins:
   - configuration-as-code
-casc:
-  bundleTemplates:
-  - name: default
-    plugins:
+masters:
+  masterTemplates:
+    default:
+      cascBundleTemplate: default
+      disk: 5
+      memory: 4096
+    basic-a:
+      cascBundleTemplate: basic-a
+      disk: 5
+      memory: 5120
+  masterDefinitions:
+    specificMasters:
+    - name: master1
+      masterTemplate: default
+      appIds:
+        - "001"
+        - "002"
+    - name: master2
+      masterTemplate: default
+      appIds:
+    - name: master3
+      masterTemplate: basic-a
+      appIds:
+        - "003"
+        - "004"
+    manyMasters:
+    - prefix: red
+      masterTemplate: default
+      quantity: 2
+    - prefix: green
+      masterTemplate: default
+      quantity: 3
+    - prefix: blue
+      masterTemplate: basic-a
+      quantity: 2
+
+cascBundleTemplates:
+- name: default
+  bundle:
     jenkins:
-  - name: tmpl-a
+      systemMessage: "Jenkins configured using CasC bundle template: default."
     plugins:
+      - id: "configuration-as-code"
+      - id: "maven-plugin"
+      - id: "github-branch-source"
+      - id: "cloudbees-groovy-view"
+      - id: "cloudbees-jsync-archiver"
+      - id: "cloudbees-monitoring"
+      - id: "cloudbees-nodes-plus"
+      - id: "cloudbees-ssh-slaves"
+      - id: "cloudbees-template"
+      - id: "cloudbees-view-creation-filter"
+      - id: "cloudbees-workflow-template"
+      - id: "cloudbees-workflow-ui"
+      - id: "email-ext"
+      - id: "git"
+      - id: "infradna-backup"
+      - id: "ldap"
+      - id: "operations-center-cloud"
+      - id: "pipeline-model-extensions"
+      - id: "pipeline-stage-view"
+      - id: "wikitext"
+      - id: "workflow-aggregator"
+      - id: "workflow-cps-checkpoint"
+    pluginCatalog:
+- name: basic-a
+  bundle:
     jenkins:
+      systemMessage: "Jenkins configured using CasC bundle template: basic-a."
+    plugins:
+      - id: "configuration-as-code"
+      - id: "maven-plugin"
+      - id: "github-branch-source"
+      - id: "cloudbees-groovy-view"
+      - id: "cloudbees-jsync-archiver"
+      - id: "cloudbees-monitoring"
+      - id: "cloudbees-nodes-plus"
+      - id: "cloudbees-ssh-slaves"
+      - id: "cloudbees-template"
+      - id: "cloudbees-view-creation-filter"
+      - id: "cloudbees-workflow-template"
+      - id: "cloudbees-workflow-ui"
+      - id: "email-ext"
+      - id: "git"
+      - id: "infradna-backup"
+      - id: "ldap"
+      - id: "operations-center-cloud"
+      - id: "pipeline-model-extensions"
+      - id: "pipeline-stage-view"
+      - id: "wikitext"
+      - id: "workflow-aggregator"
+      - id: "workflow-cps-checkpoint"
+      - id: "job-dsl"
+    pluginCatalog:
+      type: "plugin-catalog"
+      version: "1"
+      name: "must-have-catalog"
+      displayName: "Must Have Master Catalog"
+      configurations:
+      - description: "Important plugins"
+        includePlugins:
+          job-dsl:
+            version: 1.77

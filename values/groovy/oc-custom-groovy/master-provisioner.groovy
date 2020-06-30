@@ -13,8 +13,8 @@ import org.apache.commons.io.FileUtils
 def masterDefinitions = new File("/var/jenkins_config/master-definitions/masters.yaml")
 def mastersYaml = masterDefinitions.text
 
-def yamlReader = Serialization.yamlMapper()
-Map map = yamlReader.readValue(mastersYaml, Map.class);
+def yamlMapper = Serialization.yamlMapper()
+Map map = yamlMapper.readValue(mastersYaml, Map.class);
 
 String yamlToMerge = """kind: StatefulSet
 spec:
@@ -111,7 +111,7 @@ private void updateMM(String masterName, LinkedHashMap<String, Serializable> pro
 
     createOrUpdateCascBundle(masterName, bundleTemplate)
     managedMaster.restartAction(false)
-    sleep(500)
+    sleep(400)
 }
 
 
@@ -138,8 +138,8 @@ private void applyRbacAtMasterRoot(String masterName) {
 
 //instantiate a copy of the bundle template with the master name
 private void createOrUpdateCascBundle(String masterName, String bundleTemplate) {
+    def bundleTemplateFileHandle = new File("/var/jenkins_config/bundle-templates/${bundleTemplate}.yaml")
     def destinationDir = new File("/var/jenkins_home/jcasc-bundles-store/${masterName}")
-    def sourceDir = new File("/var/jenkins_config/bundle-templates/${bundleTemplate}")
     def bundleYamlFileHandle = new File("/var/jenkins_home/jcasc-bundles-store/${masterName}/bundle.yaml")
     int bundleVersion = 1
 
@@ -147,7 +147,7 @@ private void createOrUpdateCascBundle(String masterName, String bundleTemplate) 
         println "Bundle with this masterName already exists. Updating it..."
         bundleVersion = getCurrentBundleVersion(bundleYamlFileHandle) + 1
 
-        createOrUpdateBundleDir(destinationDir, sourceDir)
+        createOrUpdateBundleDir(destinationDir, bundleTemplateFileHandle)
         writeBundleYamlFile(masterName, bundleTemplate, bundleVersion, bundleYamlFileHandle)
 
         //ensure our changes on disk are pulled in
@@ -156,8 +156,7 @@ private void createOrUpdateCascBundle(String masterName, String bundleTemplate) 
         println "Bundle with this masterName does not exist. Creating it..."
 
         createEntryInSecurityFile(masterName)
-        createOrUpdateBundleDir(destinationDir, sourceDir)
-        writeBundleYamlFile(masterName, bundleTemplate, bundleVersion, bundleYamlFileHandle)
+        createOrUpdateBundle(destinationDir, bundleTemplateFileHandle, masterName, bundleTemplate, bundleVersion, bundleYamlFileHandle)
 
         ExtensionList.lookupSingleton(BundleStorage.class).initialize()
         BundleStorage.AccessControl accessControl = ExtensionList.lookupSingleton(BundleStorage.class).getAccessControl()
@@ -166,11 +165,29 @@ private void createOrUpdateCascBundle(String masterName, String bundleTemplate) 
     }
 }
 
-private void createOrUpdateBundleDir(File destinationDir, File sourceDir) {
+private void createOrUpdateBundle(File destinationDir, File sourceFile, String masterName, String bundleTemplate, int bundleVersion, File bundleYamlFileHandle) {
+    createOrUpdateBundleDir(destinationDir, sourceFile)
+    writeBundleYamlFile(masterName, bundleTemplate, bundleVersion, bundleYamlFileHandle)
+}
+
+private void createOrUpdateBundleDir(File destinationDir, File bundleTemplateFileHandle) {
     if(destinationDir.exists()) {
         FileUtils.forceDelete(destinationDir)
     }
-    FileUtils.copyDirectory(sourceDir, destinationDir)
+    FileUtils.forceMkdir(destinationDir)
+
+    def yamlMapper = Serialization.yamlMapper()
+    Map map = yamlMapper.readValue(bundleTemplateFileHandle.text, Map.class);
+
+    def destinationDirPath = destinationDir.getAbsolutePath()
+
+    File jenkinsYaml = new File(destinationDirPath + "/jenkins.yaml")
+    File pluginsYaml = new File(destinationDirPath + "/plugins.yaml")
+    File pluginCatalogYaml = new File(destinationDirPath + "/jenkins.yaml")
+
+    yamlMapper.writeValue(jenkinsYaml, map.jenkins)
+    yamlMapper.writeValue(pluginsYaml, map.plugins)
+    yamlMapper.writeValue(pluginCatalogYaml, map.pluginCatalog)
 }
 
 private void createEntryInSecurityFile(String masterName) {
