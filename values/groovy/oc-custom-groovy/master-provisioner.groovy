@@ -45,7 +45,7 @@ disk   : it.disk, //Integer //
 envVars: "APP_NUMBERS=${appNumbers}", //String
 //    fsGroup: "1000", //String
 //    image: "custom-image-name", //String -- set this up in Operations Center Docker Image configuration
-//    javaOptions: "${KubernetesMasterProvisioning.JAVA_OPTIONS} -Djenkins.install.runSetupWizard=false ", //String
+//    javaOptions: "${KubernetesMasterProvisioning.JAVA_OPTIONS} -Dadditional.option", //String
 //    jenkinsOptions:"", //String
 //    kubernetesInternalDomain: "cluster.local", //String
 //    livenessInitialDelaySeconds: 300, //Integer
@@ -67,6 +67,7 @@ yaml   : yamlToMerge //String
     } else {
         createMM(masterName, props, bundleTemplate)
     }
+    sleep(400)
 }
 
 private void createMM(String masterName, LinkedHashMap<String, Serializable> props, String bundleTemplate) {
@@ -94,6 +95,7 @@ private void createMM(String masterName, LinkedHashMap<String, Serializable> pro
 
     //ok, now we can actually boot this thing up
     println "Provision and start..."
+    //todo: check if this action can be taken first
     master.provisionAndStartAction();
 }
 
@@ -110,8 +112,9 @@ private void updateMM(String masterName, LinkedHashMap<String, Serializable> pro
     applyRbacAtMasterRoot(masterName)
 
     createOrUpdateCascBundle(masterName, bundleTemplate)
+
+    //todo: check if this action can be taken first
     managedMaster.restartAction(false)
-    sleep(400)
 }
 
 
