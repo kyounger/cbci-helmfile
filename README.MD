@@ -19,3 +19,4 @@
 ### Known Issues
 
 * The master provisioning script is run when CJOC starts. However, because it doesn't understand a diff, it just reprovisions _ALL_ the masters each time it starts. This doesn't affect the state of the masters, but it does restart them all at the same time.
+* CasC seems to require a definition of a plugin-catalog in the bundle. You can't leave the `plugin-catalog.yaml` file empty, though. Workaround for now is to make sure you are specifying a plugin catalog for all CascBundleTemplates, even if you aren' adding that plugin in the `plugins.yaml` file.

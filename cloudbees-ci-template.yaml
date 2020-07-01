@@ -51,7 +51,7 @@ isolation:
   masters:
     enabled: true
     # defaults to EachMaster. Less isolated would be "AllMastersTogether".
-    level:  EachMaster
+    level: EachMaster
     builds:
       enabled: true
       # defaults to "EachMastersBuilds". Less isolated would be "AllMastersBuildsTogether".
