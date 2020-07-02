@@ -103,6 +103,19 @@ customLdifFiles:
     mail: user002@example.com
     userpassword: {{ .Values.ldapGlobalPassword }}
 
+    dn: uid=user003, ou=People, dc=example,dc=org
+    cn: User 003
+    sn: User003
+    givenname: User003
+    objectclass: top
+    objectclass: person
+    objectclass: organizationalPerson
+    objectclass: inetOrgPerson
+    ou: People
+    uid: user003
+    mail: user003@example.com
+    userpassword: {{ .Values.ldapGlobalPassword }}
+
     dn: uid=idm, ou=Administrators,dc=example,dc=org
     objectclass: top
     objectclass: person
