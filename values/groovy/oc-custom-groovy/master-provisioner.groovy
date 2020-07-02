@@ -9,14 +9,21 @@ import io.fabric8.kubernetes.client.utils.Serialization
 import jenkins.model.Jenkins
 import org.apache.commons.io.FileUtils
 
+import java.util.logging.Logger
+
+String scriptName = "master-provisioner.groovy"
+Logger logger = Logger.getLogger(scriptName)
+logger.info("Starting master provisioning script.")
 
 if(OperationsCenter.getInstance().getConnectedMasters().size()==0) {
     // pretty hacky, but we need to wait a few seconds when booting the CJOC the first time and
     // the heuristic of "no masters defined yet" is reasonable for determining that.
     // If you're running this from the script console or jenkins cli, and have no masters, you
     // can just comment out this line if you want to save 5 second of your life.
+    logger.info("Sleeping for 5 seconds.")
     sleep(5000)
 }
+
 
 def masterDefinitions = new File("/var/jenkins_config/master-definitions/masters.yaml")
 def mastersYaml = masterDefinitions.text
@@ -40,6 +47,7 @@ spec:
           name: mm-custom-groovy
 """
 map.masters.each() {
+    logger.info("Creating master ${it.name}")
     String masterName = it.name
     String bundleTemplate = it.cascBundleTemplate
     String appNumbers = it.appIds?.join(",")
@@ -75,8 +83,10 @@ yaml   : yamlToMerge //String
     } else {
         createMM(masterName, props, bundleTemplate)
     }
-    sleep(100)
+    sleep(1000)
+    logger.info("Finished creating master ${it.name}")
 }
+logger.info("Master Provisioning script finished.")
 
 private void createMM(String masterName, LinkedHashMap<String, Serializable> props, String bundleTemplate) {
     def configuration = new KubernetesMasterProvisioning()
@@ -162,7 +172,7 @@ private void createOrUpdateCascBundle(String masterName, String bundleTemplate) 
         writeBundleYamlFile(masterName, bundleTemplate, bundleVersion, bundleYamlFileHandle)
 
         //ensure our changes on disk are pulled in
-        sleep(100)
+        sleep(500)
         ExtensionList.lookupSingleton(BundleStorage.class).initialize()
         BundleStorage.AccessControl accessControl = ExtensionList.lookupSingleton(BundleStorage.class).getAccessControl()
         accessControl.updateMasterPath(masterName, masterName)
@@ -172,7 +182,7 @@ private void createOrUpdateCascBundle(String masterName, String bundleTemplate) 
         createEntryInSecurityFile(masterName)
         createOrUpdateBundle(destinationDir, bundleTemplateFileHandle, masterName, bundleTemplate, bundleVersion, bundleYamlFileHandle)
 
-        sleep(100)
+        sleep(500)
         ExtensionList.lookupSingleton(BundleStorage.class).initialize()
         BundleStorage.AccessControl accessControl = ExtensionList.lookupSingleton(BundleStorage.class).getAccessControl()
         accessControl.updateMasterPath(masterName, masterName)
@@ -196,9 +206,9 @@ private void createOrUpdateBundleDir(File destinationDir, File bundleTemplateFil
 
     def destinationDirPath = destinationDir.getAbsolutePath()
 
-    def jenkins = yamlMapper.writeValueAsString([jenkins: map.jenkins])?.replace("---","").trim()
-    def plugins = yamlMapper.writeValueAsString([plugins: map.plugins])?.replace("---","").trim()
-    def pluginCatalog = yamlMapper.writeValueAsString(map.pluginCatalog)?.replace("---","").trim()
+    def jenkins = yamlMapper.writeValueAsString([jenkins: map.jenkins])?.replace("---","")?.trim()
+    def plugins = yamlMapper.writeValueAsString([plugins: map.plugins])?.replace("---","")?.trim()
+    def pluginCatalog = yamlMapper.writeValueAsString(map.pluginCatalog)?.replace("---","")?.trim()
 
     if(jenkins == "null") {
         jenkins=""
