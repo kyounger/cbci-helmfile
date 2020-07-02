@@ -29,13 +29,21 @@ environments:
     - internal-defaults.yaml
     - cloudbees-ci.yaml
     - ldapGlobalPassword: {{ requiredEnv "ENV_ABSTRACTED_PW" }}
-    - cloudbeesCoreAppVersion: {{ exec "helm" (list "show" "chart" "cloudbees/cloudbees-core" "--version" .Values.cloudbeesCoreChartVersion) | fromYaml | get "appVersion" nil | nindent 8 }}
+    - ocUrl: {{ if .Values.https.enabled -}} https {{- else -}} http {{- end -}}://{{ .Values.domain }}/cjoc
+    - cloudbeesCoreAppVersion: {{ exec "helm" (list "show" "chart" "cloudbees/cloudbees-core" "--version" .Values.cloudbeesCoreChartVersion) | fromYaml | get "appVersion" nil }}
 releases:
 - name: oc-extra-plugins
   namespace: cloudbees
   chart: incubator/raw
   values:
   - values/oc-extra-plugins.yaml.gotmpl
+- name: master-provisioner
+  namespace: cloudbees
+  chart: incubator/raw
+  values:
+  - values/master-provisioner.yaml.gotmpl
+  needs:
+  - cloudbees/cbcore
 - name: master-definitions
   namespace: cloudbees
   chart: incubator/raw

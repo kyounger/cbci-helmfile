@@ -1,0 +1,39 @@
+resources:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: master-provisioner-script
+  data:
+    master-provisioner.groovy: |
+      {{ readFile "groovy/oc-custom-groovy/master-provisioner.groovy" | nindent 6 }}
+
+- apiVersion: batch/v1
+  kind: Job
+  metadata:
+    name: initial-install-master-creation
+  spec:
+    template:
+      spec:
+        containers:
+        - image: curlimages/curl
+          name: curl
+          env:
+          - name: SECRET_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: cbcore-admin-token-secret
+                key: token
+          command: ["sh"]
+          args: 
+          - -c
+          - curl --data-urlencode script@/scripts/master-provisioner.groovy -v --user admin:$SECRET_TOKEN {{ .Values.ocUrl }}/scriptText
+          volumeMounts:
+          - mountPath: /scripts
+            name: scripts
+        volumes:
+        - name: scripts
+          configMap:
+            name: master-provisioner-script
+            defaultMode: 420
+        restartPolicy: Never
+    backoffLimit: 1

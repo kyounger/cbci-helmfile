@@ -11,6 +11,7 @@ import org.apache.commons.io.FileUtils
 
 import java.util.logging.Logger
 
+
 String scriptName = "master-provisioner.groovy"
 Logger logger = Logger.getLogger(scriptName)
 logger.info("Starting master provisioning script.")
@@ -206,7 +207,7 @@ private void createOrUpdateBundleDir(File destinationDir, File bundleTemplateFil
 
     def destinationDirPath = destinationDir.getAbsolutePath()
 
-    def jenkins = yamlMapper.writeValueAsString([jenkins: map.jenkins])?.replace("---","")?.trim()
+    def jenkins = yamlMapper.writeValueAsString(map.jenkins)?.replace("---","")?.trim()
     def plugins = yamlMapper.writeValueAsString([plugins: map.plugins])?.replace("---","")?.trim()
     def pluginCatalog = yamlMapper.writeValueAsString(map.pluginCatalog)?.replace("---","")?.trim()
 
