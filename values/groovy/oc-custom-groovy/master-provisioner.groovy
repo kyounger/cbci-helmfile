@@ -10,6 +10,14 @@ import jenkins.model.Jenkins
 import org.apache.commons.io.FileUtils
 
 
+if(OperationsCenter.getInstance().getConnectedMasters().size()==0) {
+    // pretty hacky, but we need to wait a few seconds when booting the CJOC the first time and
+    // the heuristic of "no masters defined yet" is reasonable for determining that.
+    // If you're running this from the script console or jenkins cli, and have no masters, you
+    // can just comment out this line if you want to save 5 second of your life.
+    sleep(5000)
+}
+
 def masterDefinitions = new File("/var/jenkins_config/master-definitions/masters.yaml")
 def mastersYaml = masterDefinitions.text
 
@@ -67,7 +75,7 @@ yaml   : yamlToMerge //String
     } else {
         createMM(masterName, props, bundleTemplate)
     }
-    sleep(400)
+    sleep(100)
 }
 
 private void createMM(String masterName, LinkedHashMap<String, Serializable> props, String bundleTemplate) {
@@ -154,13 +162,17 @@ private void createOrUpdateCascBundle(String masterName, String bundleTemplate) 
         writeBundleYamlFile(masterName, bundleTemplate, bundleVersion, bundleYamlFileHandle)
 
         //ensure our changes on disk are pulled in
+        sleep(100)
         ExtensionList.lookupSingleton(BundleStorage.class).initialize()
+        BundleStorage.AccessControl accessControl = ExtensionList.lookupSingleton(BundleStorage.class).getAccessControl()
+        accessControl.updateMasterPath(masterName, masterName)
     } else {
         println "Bundle with this masterName does not exist. Creating it..."
 
         createEntryInSecurityFile(masterName)
         createOrUpdateBundle(destinationDir, bundleTemplateFileHandle, masterName, bundleTemplate, bundleVersion, bundleYamlFileHandle)
 
+        sleep(100)
         ExtensionList.lookupSingleton(BundleStorage.class).initialize()
         BundleStorage.AccessControl accessControl = ExtensionList.lookupSingleton(BundleStorage.class).getAccessControl()
         accessControl.updateMasterPath(masterName, masterName)
@@ -184,13 +196,31 @@ private void createOrUpdateBundleDir(File destinationDir, File bundleTemplateFil
 
     def destinationDirPath = destinationDir.getAbsolutePath()
 
-    File jenkinsYaml = new File(destinationDirPath + "/jenkins.yaml")
-    File pluginsYaml = new File(destinationDirPath + "/plugins.yaml")
-    File pluginCatalogYaml = new File(destinationDirPath + "/jenkins.yaml")
+    def jenkins = yamlMapper.writeValueAsString([jenkins: map.jenkins])?.replace("---","").trim()
+    def plugins = yamlMapper.writeValueAsString([plugins: map.plugins])?.replace("---","").trim()
+    def pluginCatalog = yamlMapper.writeValueAsString(map.pluginCatalog)?.replace("---","").trim()
 
-    yamlMapper.writeValue(jenkinsYaml, map.jenkins)
-    yamlMapper.writeValue(pluginsYaml, map.plugins)
-    yamlMapper.writeValue(pluginCatalogYaml, map.pluginCatalog)
+    if(jenkins == "null") {
+        jenkins=""
+    }
+    if(plugins == "null") {
+        plugins=""
+    }
+    if(pluginCatalog == "null") {
+        pluginCatalog=""
+    }
+
+    File jenkinsYaml = new File(destinationDirPath + "/jenkins.yaml")
+    jenkinsYaml.createNewFile()
+    jenkinsYaml.text=jenkins
+
+    File pluginsYaml = new File(destinationDirPath + "/plugins.yaml")
+    pluginsYaml.createNewFile()
+    pluginsYaml.text=plugins
+
+    File pluginCatalogYaml = new File(destinationDirPath + "/plugin-catalog.yaml")
+    pluginCatalogYaml.createNewFile()
+    pluginCatalogYaml.text=pluginCatalog
 }
 
 private void createEntryInSecurityFile(String masterName) {
@@ -233,7 +263,7 @@ catalog:
 }
 
 private int getCurrentBundleVersion(File bundleYamlFileHandle) {
-    def versionLine = bundleYamlFileHandle.readLines()[1]
-    String version = versionLine.replace("version:", "").replace(" ", "").replace("'","")
+    def versionLine = bundleYamlFileHandle.readLines().find {it.startsWith("version")}
+    String version = versionLine.replace("version:", "").replace(" ", "").replace("'","").replace('"','')
     return version as int
 }
