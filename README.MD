@@ -7,9 +7,9 @@
 5. Edit any values you need to, inserting license, defining CasC BundleTemplates, defining masters, etc.
 6. Run `helmfile template` to see if all is configured correctly to produce the yaml. Not explicitly necessary, but a nice check before running the next step.
 6. Ensure an environment variable named `ENV_ABSTRACTED_PW` is set to some random value and is exported
-7. Run `helmfile apply` (or `export ENV_ABSTRACTED_PW=somerandomvalue helmfile apply` if you don't have the env var exported in your shell)
+7. Run `helmfile sync` (or `export ENV_ABSTRACTED_PW=somerandomvalue helmfile sync` if you don't have the env var exported in your shell). We have to use `sync` instead of `apply` on the first run in case there are any CRDs that need to be installed into the cluster — these will fail on a `apply/diff`, because it can't validate the generated resources against their required definitions.
 8. Wait for the install to finish and log in.
-9. Make an edit to your `cloudbees-ci.yaml` file and rerun `helmfile apply` to see the changes apply.
+9. Make an edit to your `cloudbees-ci.yaml` file and rerun `helmfile apply` to see the changes apply. 
 
 ### Notes
 
