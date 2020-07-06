@@ -28,9 +28,17 @@ environments:
     values:
     - internal-defaults.yaml
     - cloudbees-ci.yaml
+    # calculated internal values:
     - ldapGlobalPassword: {{ requiredEnv "ENV_ABSTRACTED_PW" }}
     - ocUrl: {{ if .Values.https.enabled -}} https {{- else -}} http {{- end -}}://{{ .Values.domain }}/cjoc
     - cloudbeesCoreAppVersion: {{ exec "helm" (list "show" "chart" "cloudbees/cloudbees-core" "--version" .Values.cloudbeesCoreChartVersion) | fromYaml | get "appVersion" nil }}
+      {{ $appIds := list -}}
+      {{- $masterTemplates := .Values.masters.masterTemplates -}}
+      {{- range $definition := get "specificMasters" .Values.masters.masterDefinitions -}}
+      {{- $masterTemplate := get $definition.masterTemplate $masterTemplates -}}
+      {{- $appIds = concat $appIds $definition.appIds -}}
+      {{- end }}
+    - appIds: {{ $appIds | uniq | toJson }}
 releases:
 - name: oc-extra-plugins
   namespace: cloudbees
