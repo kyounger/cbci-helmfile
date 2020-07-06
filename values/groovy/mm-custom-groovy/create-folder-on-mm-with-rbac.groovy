@@ -1,16 +1,16 @@
-import com.cloudbees.hudson.plugins.folder.Folder;
-import jenkins.model.Jenkins;
-import nectar.plugins.rbac.groups.Group;
-import nectar.plugins.rbac.groups.GroupContainerLocator;
+import com.cloudbees.hudson.plugins.folder.Folder
+import jenkins.model.Jenkins
+import nectar.plugins.rbac.groups.Group
+import nectar.plugins.rbac.groups.GroupContainerLocator
 
-def appNumbers = System.getenv("APP_NUMBERS")?.split(',');
+def appIds = System.getenv("APP_IDS")?.split(',');
 
-appNumbers?.each {
-    String appNumber = it;
+appIds?.each {
+    String appId = it;
 
-    String folderName = "app-${appNumber}";
-    String internalGroupName = "j-GroupDeveloper${appNumber}";
-    String externalGroupName = "GroupDeveloper${appNumber}";
+    String folderName = "app-${appId}";
+    String internalGroupName = "j-Dev${appId}";
+    String externalGroupName = "Dev${appId}";
     String roleName = "develop";
 
     println("folderName: ${folderName}");
@@ -28,7 +28,10 @@ appNumbers?.each {
     def container = GroupContainerLocator.locate(appFolder);
     if(!container.getGroups().any{it.name=internalGroupName}) {
         Group group = new Group(container, internalGroupName);
-        group.doAddMember(externalGroupName);
+        group.setMembers([externalGroupName])
+        group.getRoles().each {
+            group.doRevokeRole(it)
+        }
         group.doGrantRole(roleName, 0, Boolean.TRUE);
         container.addGroup(group);
     }

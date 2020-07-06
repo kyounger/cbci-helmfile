@@ -51,7 +51,7 @@ map.masters.each() {
     logger.info("Creating master ${it.name}")
     String masterName = it.name
     String bundleTemplate = it.cascBundleTemplate
-    String appNumbers = it.appIds?.join(",")
+    String appIds = it.appIds?.join(",")
 
     Map props = [
 //    allowExternalAgents: false, //boolean
@@ -59,7 +59,7 @@ map.masters.each() {
 //    cpus: 1.0, //Double
 disk   : it.disk, //Integer //
 //    domain: "readYaml-custom-domain-1", //String
-envVars: "APP_NUMBERS=${appNumbers}", //String
+envVars: "APP_IDS=${appIds}", //String
 //    fsGroup: "1000", //String
 //    image: "custom-image-name", //String -- set this up in Operations Center Docker Image configuration
 //    javaOptions: "${KubernetesMasterProvisioning.JAVA_OPTIONS} -Dadditional.option", //String
