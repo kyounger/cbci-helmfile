@@ -54,8 +54,8 @@ customLdifFiles:
     objectclass: groupOfNames
     cn: Administrators
     ou: Groups
-    member: uid=admin, dc=example,dc=org
-    member: uid=kenny, dc=example,dc=org
+    member: uid=admin,ou=People, dc=example,dc=org
+    member: uid=kenny,ou=People, dc=example,dc=org
 
     # add specific people (users)
     dn: uid=kenny, ou=People, dc=example,dc=org
@@ -83,17 +83,5 @@ customLdifFiles:
     uid: admin
     mail: admin@example.org
     userpassword: {{ $ldapGlobalPassword }}
-
-    dn: uid=idm, ou=Administrators,dc=example,dc=org
-    objectclass: top
-    objectclass: person
-    objectclass: organizationalPerson
-    objectclass: inetOrgPerson
-    uid: idm
-    cn: IDM Administrator
-    sn: IDM Administrator
-    description: Special LDAP acccount used by the IDM to access the LDAP data.
-    ou: Administrators
-    userPassword: {{ $ldapGlobalPassword }}
 adminPassword: {{ $ldapGlobalPassword }}
 configPassword: {{ $ldapGlobalPassword }}

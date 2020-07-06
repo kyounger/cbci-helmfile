@@ -41,6 +41,7 @@ Map<String, Set<String>> roles = new HashMap<String, Set<String>>();
 for (Permission p : Permission.getAll()) {
     roles.put(p.getId(), new HashSet<String>(Collections.singleton(ROLE_ADMINISTER)));
 }
+
 // Develop role
 roles.get(Jenkins.READ.getId()).add(ROLE_DEVELOP);
 for (PermissionGroup pg : [Item.PERMISSIONS, SCM.PERMISSIONS, Run.PERMISSIONS, View.PERMISSIONS]) {
@@ -54,10 +55,7 @@ roles.get(Item.DISCOVER.getId()).add(ROLE_BROWSE);
 roles.get(Item.READ.getId()).add(ROLE_BROWSE);
 
 // Authenticated to get Overall/Read
-//roles.get(Jenkins.READ.getId()).add(BUILTIN_ROLE_AUTHENTICATED);
-for (Permission p : Permission.getAll()) {
-    roles.put(p.getId(), new HashSet<String>(Collections.singleton(BUILTIN_ROLE_AUTHENTICATED)));
-}
+roles.get(Jenkins.READ.getId()).add(BUILTIN_ROLE_AUTHENTICATED);
 
 // Set role config
 RoleMatrixAuthorizationPlugin matrixAuthorizationPlugin = RoleMatrixAuthorizationPlugin.getInstance()
