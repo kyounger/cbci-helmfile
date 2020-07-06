@@ -113,9 +113,24 @@ private void createMM(String masterName, LinkedHashMap<String, Serializable> pro
     applyRbacAtMasterRoot(masterName)
 
     //ok, now we can actually boot this thing up
-    println "Provision and start..."
-    //todo: check if this action can be taken first
-    master.provisionAndStartAction();
+    println "Ensure master starts."
+
+    def validActionSet = master.getValidActionSet()
+    if (validActionSet.contains(ManagedMaster.Action.ACKNOWLEDGE_ERROR)) {
+        master.acknowledgeErrorAction()
+        sleep(500)
+    }
+
+    validActionSet = master.getValidActionSet()
+    if(validActionSet.contains(ManagedMaster.Action.START)) {
+        master.startAction();
+        sleep(500)
+    } else if(validActionSet.contains(ManagedMaster.Action.PROVISION_AND_START)) {
+        master.provisionAndStartAction();
+        sleep(500)
+    } else {
+        throw "Cannot start the master." as Throwable
+    }
 }
 
 private void updateMM(String masterName, LinkedHashMap<String, Serializable> props, String bundleTemplate) {
