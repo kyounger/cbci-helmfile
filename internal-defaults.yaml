@@ -23,3 +23,8 @@ masters:
     specificMasters:
     manyMasters:
 cascBundleTemplates:
+ldap:
+  roles:
+    - Dev
+    - Audit
+    - Admin

@@ -1,3 +1,4 @@
+{{- $ldapGlobalPassword := .Values.ldapGlobalPassword -}}
 customLdifFiles:
   main.ldif: |
     # define people and groups as category
@@ -11,7 +12,43 @@ customLdifFiles:
     objectclass: organizationalunit
     ou: Groups
 
-    # add groups
+    #define groups/users automatically
+{{ $roles := .Values.ldap.roles -}}
+{{- $userSuffixes := (until .Values.teamTopology.usersPerAppId) -}}
+
+{{- range $appId := get "appIds" .Values -}}
+{{- range $role := $roles -}}
+{{- $groupName := nospace (cat $role $appId) }}
+    dn: cn={{ $groupName }}, ou=Groups,dc=example,dc=org
+    objectclass: top
+    objectclass: groupOfNames
+    cn: {{ $groupName }}
+    ou: Groups
+{{- range $suffixNum := $userSuffixes }}
+{{- $userSuffix := printf "%02d" (add $suffixNum 1) }}
+    member: uid={{ $groupName }}{{ $userSuffix }}, ou=People, dc=example,dc=org
+{{- end }}
+
+{{ range $suffixNum := $userSuffixes }}
+{{ $userSuffix := printf "%02d" (add $suffixNum 1) }}
+{{ $userName := nospace (cat $groupName $userSuffix) }}
+    dn: uid={{ $userName }}, ou=People, dc=example,dc=org
+    cn: User {{ $userSuffix }}
+    sn: {{ $userName }}
+    givenname: {{ $userName }}
+    objectclass: top
+    objectclass: person
+    objectclass: organizationalPerson
+    objectclass: inetOrgPerson
+    ou: People
+    uid: {{ $userName }}
+    mail: {{ $userName}}@example.org
+    userpassword: {{ $ldapGlobalPassword }}
+{{ end }}
+{{ end }}
+{{ end }}
+
+    # add Administrator group and add me and admin as members
     dn: cn=Administrators, ou=Groups,dc=example,dc=org
     objectclass: top
     objectclass: groupOfNames
@@ -19,38 +56,8 @@ customLdifFiles:
     ou: Groups
     member: uid=admin, dc=example,dc=org
     member: uid=kenny, dc=example,dc=org
-    member: uid=User001, ou=People, dc=example,dc=org
 
-    dn: cn=GroupAlpha, ou=Groups,dc=example,dc=org
-    objectclass: top
-    objectclass: groupOfNames
-    cn: GroupAlpha
-    ou: Groups
-    member: uid=User001, ou=People, dc=example,dc=org
-    member: uid=User002, ou=People, dc=example,dc=org
-
-    dn: cn=GroupBeta, ou=Groups,dc=example,dc=org
-    objectclass: top
-    objectclass: groupOfNames
-    cn: GroupBeta
-    ou: Groups
-    member: uid=User002, ou=People, dc=example,dc=org
-
-    dn: cn=GroupDeveloper001, ou=Groups,dc=example,dc=org
-    objectclass: top
-    objectclass: groupOfNames
-    cn: GroupDeveloper001
-    ou: Groups
-    member: uid=User001, ou=People, dc=example,dc=org
-
-    dn: cn=GroupDeveloper002, ou=Groups,dc=example,dc=org
-    objectclass: top
-    objectclass: groupOfNames
-    cn: GroupDeveloper002
-    ou: Groups
-    member: uid=User002, ou=People, dc=example,dc=org
-
-    # add people (users)
+    # add specific people (users)
     dn: uid=kenny, ou=People, dc=example,dc=org
     uid: kenny
     cn: kenny
@@ -61,8 +68,8 @@ customLdifFiles:
     objectclass: organizationalPerson
     objectclass: inetOrgPerson
     ou: People
-    mail: kenny@example.com
-    userpassword: {{ .Values.ldapGlobalPassword }}
+    mail: kenny@example.org
+    userpassword: {{ $ldapGlobalPassword }}
 
     dn: uid=admin, ou=People, dc=example,dc=org
     cn: admin
@@ -74,47 +81,8 @@ customLdifFiles:
     objectclass: inetOrgPerson
     ou: People
     uid: admin
-    mail: admin@example.com
-    userpassword: {{ .Values.ldapGlobalPassword }}
-
-    dn: uid=user001, ou=People, dc=example,dc=org
-    cn: User 001
-    sn: User001
-    givenname: User001
-    objectclass: top
-    objectclass: person
-    objectclass: organizationalPerson
-    objectclass: inetOrgPerson
-    ou: People
-    uid: user001
-    mail: user001@example.com
-    userpassword: {{ .Values.ldapGlobalPassword }}
-
-    dn: uid=user002, ou=People, dc=example,dc=org
-    cn: User 002
-    sn: User002
-    givenname: User002
-    objectclass: top
-    objectclass: person
-    objectclass: organizationalPerson
-    objectclass: inetOrgPerson
-    ou: People
-    uid: user002
-    mail: user002@example.com
-    userpassword: {{ .Values.ldapGlobalPassword }}
-
-    dn: uid=user003, ou=People, dc=example,dc=org
-    cn: User 003
-    sn: User003
-    givenname: User003
-    objectclass: top
-    objectclass: person
-    objectclass: organizationalPerson
-    objectclass: inetOrgPerson
-    ou: People
-    uid: user003
-    mail: user003@example.com
-    userpassword: {{ .Values.ldapGlobalPassword }}
+    mail: admin@example.org
+    userpassword: {{ $ldapGlobalPassword }}
 
     dn: uid=idm, ou=Administrators,dc=example,dc=org
     objectclass: top
@@ -126,6 +94,6 @@ customLdifFiles:
     sn: IDM Administrator
     description: Special LDAP acccount used by the IDM to access the LDAP data.
     ou: Administrators
-    userPassword: {{ .Values.ldapGlobalPassword }}
-adminPassword: {{ .Values.ldapGlobalPassword }}
-configPassword: {{ .Values.ldapGlobalPassword }}
+    userPassword: {{ $ldapGlobalPassword }}
+adminPassword: {{ $ldapGlobalPassword }}
+configPassword: {{ $ldapGlobalPassword }}
