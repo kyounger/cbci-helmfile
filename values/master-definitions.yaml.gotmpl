@@ -5,35 +5,4 @@ resources:
     name: master-definitions
   data:
     masters.yaml: |
-      masters:
-      {{ $masterTemplates := .Values.masters.masterTemplates }}
-      {{- range $definition := get "specificMasters" .Values.masters.masterDefinitions }}
-      {{- $masterTemplate := get $definition.masterTemplate $masterTemplates }}
-      - name: {{ $definition.name }}
-        disk: {{ $masterTemplate.disk }}
-        memory: {{ $masterTemplate.memory }}
-        cascBundleTemplate: {{ $masterTemplate.cascBundleTemplate }}
-        appIds:
-        {{- range get "appIds" . }}
-          - {{ . -}}
-        {{- end -}}
-      {{ end }}
-      {{- range $definition := get "manyMasters" .Values.masters.masterDefinitions -}}
-      {{- $masterTemplate := get $definition.masterTemplate $masterTemplates }}
-      {{- range $i := until (get "quantity" $definition) }}
-      - name: {{ $definition.prefix -}}{{- printf "%04d" (add $i 1) }}
-        disk: {{ $masterTemplate.disk }}
-        memory: {{ $masterTemplate.memory }}
-        cascBundleTemplate: {{ $masterTemplate.cascBundleTemplate }}
-        appIds:
-      {{- end -}}
-      {{ end }}
-- apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    name: bundle-templates
-  data:
-{{ range get "cascBundleTemplates" .Values }}
-    {{ .name }}.yaml: |
-      {{- .bundle | toYaml | nindent 6 }}
-{{ end }}
+      {{- .Values.calculatedMasters | toYaml | nindent 6 }}

@@ -32,12 +32,39 @@ environments:
     - ldapGlobalPassword: {{ requiredEnv "ENV_ABSTRACTED_PW" }}
     - ocUrl: {{ if .Values.https.enabled -}} https {{- else -}} http {{- end -}}://{{ .Values.domain }}/cjoc
     - cloudbeesCoreAppVersion: {{ exec "helm" (list "show" "chart" "cloudbees/cloudbees-core" "--version" .Values.cloudbeesCoreChartVersion) | fromYaml | get "appVersion" nil }}
-      {{ $appIds := list -}}
-      {{- $masterTemplates := .Values.masters.masterTemplates -}}
-      {{- range $definition := get "specificMasters" .Values.masters.masterDefinitions -}}
-      {{- $masterTemplate := get $definition.masterTemplate $masterTemplates -}}
-      {{- $appIds = concat $appIds $definition.appIds -}}
-      {{- end }}
+    - calculatedMasters:
+        masters:
+          {{ $defaultMasterTemplate := .Values.masters.defaultMasterTemplate }}
+          {{ $masterTemplates := .Values.masters.masterTemplates }}
+          {{ $appIds := list -}}
+
+          {{ range $definition := get "specificMasters" .Values.masters.masterDefinitions }}
+          {{ $masterName := $definition.name }}
+          {{ if eq $definition.masterTemplate "default" }}
+          {{ $merged := mergeOverwrite $defaultMasterTemplate (omit $definition "masterTemplate" "name") }}
+          {{ dict $masterName $merged | toYaml | nindent 10 }}
+          {{ else }}
+          {{ $masterTemplate := get $definition.masterTemplate $masterTemplates }}
+          {{ if (hasKey $definition "appIds") }}{{ $appIds = concat $appIds $definition.appIds }}{{ end }}
+          {{ $merged := mergeOverwrite $defaultMasterTemplate $masterTemplate (omit $definition "masterTemplate" "name") }}
+          {{ dict $masterName $merged | toYaml | nindent 10 }}
+          {{ end }}
+          {{ end }}
+
+          {{ range $definition := get "manyMasters" .Values.masters.masterDefinitions }}
+          {{ range $i := until (get "quantity" $definition) }}
+          {{ $masterName := nospace (cat ($definition.prefix) (printf "%04d" (add $i 1))) }}
+          {{ if eq $definition.masterTemplate "default" }}
+          {{ $merged := mergeOverwrite $defaultMasterTemplate (omit $definition "masterTemplate" "prefix" "quantity") }}
+          {{ dict $masterName $merged | toYaml | nindent 10 }}
+          {{ else }}
+          {{ $masterTemplate := get $definition.masterTemplate $masterTemplates }}
+          {{ if (hasKey $definition "appIds") }}{{ $appIds = concat $appIds $definition.appIds }}{{ end }}
+          {{ $merged := mergeOverwrite $defaultMasterTemplate $masterTemplate (omit $definition "masterTemplate" "prefix" "quantity") }}
+          {{ dict $masterName $merged | toYaml | nindent 10 }}
+          {{ end }}
+          {{ end }}
+          {{ end }}
     - appIds: {{ $appIds | uniq | toJson }}
 releases:
 - name: oc-extra-plugins

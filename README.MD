@@ -20,3 +20,31 @@
 
 * The master provisioning script is run when CJOC starts. However, because it doesn't understand a diff, it just reprovisions _ALL_ the masters each time it starts. This doesn't affect the state of the masters, but it does restart them all at the same time.
 * CasC seems to require a definition of a plugin-catalog in the bundle. You can't leave the `plugin-catalog.yaml` file empty, though. Workaround for now is to make sure you are specifying a plugin catalog for all CascBundleTemplates, even if you aren' adding that plugin in the `plugins.yaml` file.
+
+### reference
+
+These are properties you can set on the provisioning section of a master template/definition. You have to be careful with some of these.
+
+```
+allowExternalAgents: false, //boolean
+clusterEndpointId: "default", //String
+cpus: 1.0, //Double
+disk: //Integer
+envVars //String
+domain: "readYaml-custom-domain-1", //String
+fsGroup: "1000", //String
+image: "custom-image-name", //String -- set this up in Operations Center Docker Image configuration
+javaOptions: "${KubernetesMasterProvisioning.JAVA_OPTIONS} -Dadditional.option", //String
+jenkinsOptions:"", //String
+kubernetesInternalDomain: "cluster.local", //String
+livenessInitialDelaySeconds: 300, //Integer
+livenessPeriodSeconds: 10, //Integer
+livenessTimeoutSeconds: 10, //Integer
+memory: //Integer
+namespace: null, //String
+nodeSelectors: null, //String
+ratio: 0.7, //Double
+storageClassName: null, //String
+systemProperties:"", //String
+terminationGracePeriodSeconds: 1200, //Integer
+```

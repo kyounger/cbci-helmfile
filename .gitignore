@@ -6,4 +6,4 @@ kubeconfig*.yaml
 bundles/
 defaults.yaml
 cloudbees-ci.yaml
-
+cli/

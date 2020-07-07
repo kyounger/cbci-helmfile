@@ -120,10 +120,6 @@ OperationsCenter:
     configMap:
       name: jcasc
       defaultMode: 420
-  - name: bundle-templates
-    configMap:
-      name: bundle-templates
-      defaultMode: 420
   ExtraVolumeMounts:
   - name: extra-plugins
     mountPath: /usr/share/jenkins/ref/plugins
@@ -139,7 +135,4 @@ OperationsCenter:
     readOnly: true
   - name: master-definitions
     mountPath: /var/jenkins_config/master-definitions
-    readOnly: true
-  - name: bundle-templates
-    mountPath: /var/jenkins_config/bundle-templates
     readOnly: true
