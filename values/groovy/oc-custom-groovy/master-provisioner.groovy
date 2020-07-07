@@ -222,12 +222,12 @@ private void createOrUpdateBundleDir(File destinationDir, File bundleTemplateFil
 
     def destinationDirPath = destinationDir.getAbsolutePath()
 
-    def jenkins = yamlMapper.writeValueAsString(map.jenkins)?.replace("---","")?.trim()
+    def jcasc = yamlMapper.writeValueAsString(map.jcasc)?.replace("---","")?.trim()
     def plugins = yamlMapper.writeValueAsString([plugins: map.plugins])?.replace("---","")?.trim()
     def pluginCatalog = yamlMapper.writeValueAsString(map.pluginCatalog)?.replace("---","")?.trim()
 
-    if(jenkins == "null") {
-        jenkins=""
+    if(jcasc == "null") {
+        jcasc=""
     }
     if(plugins == "null") {
         plugins=""
@@ -238,7 +238,7 @@ private void createOrUpdateBundleDir(File destinationDir, File bundleTemplateFil
 
     File jenkinsYaml = new File(destinationDirPath + "/jenkins.yaml")
     jenkinsYaml.createNewFile()
-    jenkinsYaml.text=jenkins
+    jenkinsYaml.text=jcasc
 
     File pluginsYaml = new File(destinationDirPath + "/plugins.yaml")
     pluginsYaml.createNewFile()

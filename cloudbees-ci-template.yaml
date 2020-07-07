@@ -95,8 +95,9 @@ masters:
 cascBundleTemplates:
 - name: default
   bundle:
-    jenkins:
-      systemMessage: "Jenkins configured using CasC bundle template: default."
+    jcasc:
+      jenkins:
+        systemMessage: "Jenkins configured using CasC bundle template: default."
     plugins:
       - id: "configuration-as-code"
       - id: "maven-plugin"
@@ -123,8 +124,9 @@ cascBundleTemplates:
     pluginCatalog:
 - name: basic-a
   bundle:
-    jenkins:
-      systemMessage: "Jenkins configured using CasC bundle template: basic-a."
+    jcasc:
+      jenkins:
+        systemMessage: "Jenkins configured using CasC bundle template: basic-a."
     plugins:
       - id: "configuration-as-code"
       - id: "maven-plugin"
