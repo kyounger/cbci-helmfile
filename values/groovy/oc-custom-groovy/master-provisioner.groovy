@@ -55,7 +55,7 @@ private void createMM(String masterName, def masterDefinition) {
         configuration["${k}"] = v
     }
     configuration["envVars"] = "APP_IDS=${appIds}"
-    configuration["yaml"] = getManagedMasterYamlToMerge()
+    configuration["yaml"] = getManagedMasterYamlToMerge(masterName)
 
     ManagedMaster master = Jenkins.instance.createProject(ManagedMaster.class, masterName)
 
@@ -105,7 +105,7 @@ private void updateMM(String masterName, def masterDefinition) {
         currentConfiguration["${k}"] = v
     }
     currentConfiguration["envVars"] = "APP_IDS=${appIds}"
-    currentConfiguration["yaml"] = getManagedMasterYamlToMerge()
+    currentConfiguration["yaml"] = getManagedMasterYamlToMerge(masterName)
 
     managedMaster.configuration = currentConfiguration
     managedMaster.save()
@@ -258,7 +258,7 @@ private int getExistingBundleVersion(File bundleYamlFileHandle) {
     return version as int
 }
 
-static def getManagedMasterYamlToMerge() {
+static def getManagedMasterYamlToMerge(String masterName) {
     return """kind: StatefulSet
 spec:
   template:
@@ -273,6 +273,15 @@ spec:
         configMap:
           defaultMode: 420
           name: mm-custom-groovy
+          apiVersion: "apps/v1"
+---
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scheme: 'http'
+    prometheus.io/path: '/${masterName}/prometheus'
+    prometheus.io/port: '8080'
+    prometheus.io/scrape: 'true'
 """
 }
 

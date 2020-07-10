@@ -84,6 +84,18 @@ releases:
   chart: incubator/raw
   values:
   - values/master-definitions.yaml.gotmpl
+- name: prometheus
+  namespace: prometheus
+  chart: stable/prometheus
+  version: 11.6.2
+  values:
+  - values/prometheus.yaml.gotmpl
+- name: grafana
+  namespace: grafana
+  chart: stable/grafana
+  version: 5.3.5
+  values:
+  - values/grafana.yaml.gotmpl
 - name: nginx-ingress
   namespace: nginx-ingress
   chart: stable/nginx-ingress

@@ -1,0 +1,46 @@
+adminPassword: {{ .Values.ldapGlobalPassword }}
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      url: http://prometheus-server.prometheus.svc.cluster.local
+      access: proxy
+      isDefault: true
+ingress:
+  enabled: true
+persistence:
+  enabled: true
+  accessModes:
+  - ReadWriteOnce
+  size: 1Gi
+resources:
+  limits:
+    cpu: 20m
+    memory: 50Mi
+  requests:
+    cpu: 5m
+    memory: 25Mi
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+    - name: 'Default'
+      orgId: 1
+      folder: 'default'
+      type: file
+      disableDeletion: true
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards/default
+dashboards:
+  default: 
+    K8:
+      gnetId: 3119
+      revision: 1
+      datasource: Prometheus
+    CLOUDBEES:
+      gnetId: 9964
+      revision: 1
+      datasource: Prometheus
