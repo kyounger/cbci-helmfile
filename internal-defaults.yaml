@@ -28,3 +28,5 @@ ldap:
     - Dev
     - Audit
     - Admin
+teamTopology:
+  usersPerAppId: 3
