@@ -66,69 +66,63 @@ masters:
     provisioning:
       disk: 5
       memory: 4096
-    bundle:
-      jcasc:
-        jenkins:
-          systemMessage: "Jenkins configured using default master template."
-      plugins:
-        - id: "maven-plugin"
-        - id: "configuration-as-code"
-        - id: "github-branch-source"
-        - id: "cloudbees-groovy-view"
-        - id: "cloudbees-jsync-archiver"
-        - id: "cloudbees-monitoring"
-        - id: "cloudbees-nodes-plus"
-        - id: "cloudbees-ssh-slaves"
-        - id: "cloudbees-template"
-        - id: "cloudbees-view-creation-filter"
-        - id: "cloudbees-workflow-template"
-        - id: "cloudbees-workflow-ui"
-        - id: "email-ext"
-        - id: "git"
-        - id: "infradna-backup"
-        - id: "ldap"
-        - id: "operations-center-cloud"
-        - id: "pipeline-model-extensions"
-        - id: "pipeline-stage-view"
-        - id: "wikitext"
-        - id: "workflow-aggregator"
-        - id: "workflow-cps-checkpoint"
-        - id: "job-dsl"
-      pluginCatalog:
-        type: "plugin-catalog"
-        version: "1"
-        name: "must-have-catalog"
-        displayName: "Must Have Master Catalog"
-        configurations:
-        - description: "Important plugins"
-          includePlugins:
-            job-dsl: {version: 1.77}
+    jcasc:
+      jenkins:
+        systemMessage: "Jenkins configured using default master template."
+    plugins:
+      maven-plugin: {version: auto}
+      configuration-as-code: {version: auto}
+      github-branch-source: {version: auto}
+      cloudbees-groovy-view: {version: auto}
+      cloudbees-jsync-archiver: {version: auto}
+      cloudbees-monitoring: {version: auto}
+      cloudbees-nodes-plus: {version: auto}
+      cloudbees-ssh-slaves: {version: auto}
+      cloudbees-template: {version: auto}
+      cloudbees-view-creation-filter: {version: auto}
+      cloudbees-workflow-template: {version: auto}
+      cloudbees-workflow-ui: {version: auto}
+      email-ext: {version: auto}
+      git: {version: auto}
+      infradna-backup: {version: auto}
+      ldap: {version: auto}
+      operations-center-cloud: {version: auto}
+      pipeline-model-extensions: {version: auto}
+      pipeline-stage-view: {version: auto}
+      wikitext: {version: auto}
+      workflow-aggregator: {version: auto}
+      workflow-cps-checkpoint: {version: auto}
+      job-dsl: {version: auto}
     appIds: []
   masterTemplates:
     basic-a:
       provisioning:
         memory: 5120
-      bundle:
-        jcasc:
-          jenkins:
-            systemMessage: "Jenkins configured using CasC bundle template: basic-a."
-          jobs:
-          - script: |
-              folder('project-a') {
-                  displayName('Project A')
-                  description('Folder for project A')
-              }
+      plugins:
+        prometheus: {version: auto}
+        cloudbees-disk-usage-simple: {version: auto}
+      jcasc:
+        jenkins:
+          systemMessage: "Jenkins configured using CasC bundle template: basic-a."
+        jobs:
+        - script: |
+            folder('project-a') {
+                displayName('Project A')
+                description('Folder for project A')
+            }
     basic-b:
-      bundle:
-        jcasc:
-          jenkins:
-            systemMessage: "Jenkins configured using CasC bundle template: basic-b."
-          jobs:
-          - script: |
-              folder('project-b') {
-                  displayName('Project B')
-                  description('Folder for project A')
-              }
+      plugins:
+        prometheus: {version: auto}
+        cloudbees-disk-usage-simple: {version: auto}
+      jcasc:
+        jenkins:
+          systemMessage: "Jenkins configured using CasC bundle template: basic-b."
+        jobs:
+        - script: |
+            folder('project-b') {
+                displayName('Project B')
+                description('Folder for project A')
+            }
 
   masterDefinitions:
     specificMasters:
@@ -153,36 +147,35 @@ masters:
       provisioning:
         disk: 10
         # TODO: make this work!!!!!!!!!!!!
-      bundle:
-        jcasc:
-          jenkins:
-            systemMessage: "overridden"
-          jobs:
-          - script: | 
-              organizationFolder('app-AG') {
-                description("Attempt to automatically create GH org")
-                displayName('Auto-created gh org')
-                organizations {
-                  github {
-                    repoOwner("cbci-helmfile-org")
-                    credentialsId("cbci-helmfile-bot-token")
-                    traits {
-                      teamSlugFilter {
-                        teamSlug('app-AG')
-                        gitHubBranchDiscovery {
-                          strategyId(0)
-                        } 
-                        gitHubPullRequestDiscovery {
-                          strategyId(0)
-                        }
+      jcasc:
+        jenkins:
+          systemMessage: "overridden"
+        jobs:
+        - script: | 
+            organizationFolder('app-AG') {
+              description("Attempt to automatically create GH org")
+              displayName('Auto-created gh org')
+              organizations {
+                github {
+                  repoOwner("cbci-helmfile-org")
+                  credentialsId("cbci-helmfile-bot-token")
+                  traits {
+                    teamSlugFilter {
+                      teamSlug('app-AG')
+                      gitHubBranchDiscovery {
+                        strategyId(0)
+                      } 
+                      gitHubPullRequestDiscovery {
+                        strategyId(0)
                       }
                     }
                   }
                 }
-                triggers {
-                  cron('@daily')
-                }
               }
+              triggers {
+                cron('@daily')
+              }
+            }
       appIds:
         - "AG"
         - "AH"

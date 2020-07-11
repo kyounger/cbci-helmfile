@@ -29,43 +29,111 @@ environments:
     - internal-defaults.yaml
     - cloudbees-ci.yaml
     # calculated internal values:
+      # todo: I think we can use nil in the merge
     - ldapGlobalPassword: {{ requiredEnv "ENV_ABSTRACTED_PW" }}
     - ocUrl: {{ if .Values.https.enabled -}} https {{- else -}} http {{- end -}}://{{ .Values.domain }}/cjoc
-    - cloudbeesCoreAppVersion: {{ exec "helm" (list "show" "chart" "cloudbees/cloudbees-core" "--version" .Values.cloudbeesCoreChartVersion) | fromYaml | get "appVersion" nil }}
+        {{ $cbcoreAppVersion :=  exec "helm" (list "show" "chart" "cloudbees/cloudbees-core" "--version" .Values.cloudbeesCoreChartVersion) | fromYaml | get "appVersion" nil }}
+    - cloudbeesCoreAppVersion: {{ $cbcoreAppVersion }}
+        {{ $url := nospace (cat "https://jenkins-updates.cloudbees.com/update-center/envelope-core-mm/update-center.json?version=" $cbcoreAppVersion) }}
+        {{ $uc := exec "sh" (list "-c" (cat "wget -q -O - " $url " | sed '1d' | sed '$d' | jq -r | yq r - -P")) | fromYaml }}
+
+        # not entirely sure why our UC json has issues being converted into yaml/golang strings. This sorts it out, though.
+        {{ $ucEnvelopePlugins := dict }}
+        {{ range $k, $v := $uc.envelope.plugins }}
+        {{ if eq (typeOf $k) "string" }}
+          {{ $ucEnvelopePlugins = set $ucEnvelopePlugins $k $v }}
+        {{ end }}
+        {{ end }}
+
+        {{ $ucPlugins := dict }}
+        {{ range $k, $v := $uc.plugins }}
+        {{ if eq (typeOf $k) "string" }}
+          {{ $ucPlugins = set $ucPlugins $k $v }}
+        {{ end }}
+        {{ end }}
     - calculatedMasters:
         masters:
+          {{ $globalAppIds := list }}
+          {{ $masters := dict }}
+
+          # Pull in anything from .Values here as var
           {{ $defaultMasterTemplate := .Values.masters.defaultMasterTemplate }}
           {{ $masterTemplates := .Values.masters.masterTemplates }}
-          {{ $appIds := list -}}
+          {{ $masterDefinitions := .Values.masters.masterDefinitions }}
 
-          {{ range $definition := get "specificMasters" .Values.masters.masterDefinitions }}
-          {{ $masterName := $definition.name }}
-          {{ if eq $definition.masterTemplate "default" }}
-          {{ $merged := mergeOverwrite $defaultMasterTemplate (omit $definition "masterTemplate" "name") }}
-          {{ dict $masterName $merged | toYaml | nindent 10 }}
-          {{ else }}
-          {{ $masterTemplate := get $definition.masterTemplate $masterTemplates }}
-          {{ if (hasKey $definition "appIds") }}{{ $appIds = concat $appIds $definition.appIds }}{{ end }}
-          {{ $merged := mergeOverwrite $defaultMasterTemplate $masterTemplate (omit $definition "masterTemplate" "name") }}
-          {{ dict $masterName $merged | toYaml | nindent 10 }}
-          {{ end }}
-          {{ end }}
-
-          {{ range $definition := get "manyMasters" .Values.masters.masterDefinitions }}
+          # transform the manyMasters into named specific masters
+          {{ $manyMasters := list }}
+          {{ range $definition := get "manyMasters" $masterDefinitions }}
           {{ range $i := until (get "quantity" $definition) }}
-          {{ $masterName := nospace (cat ($definition.prefix) (printf "%04d" (add $i 1))) }}
-          {{ if eq $definition.masterTemplate "default" }}
-          {{ $merged := mergeOverwrite $defaultMasterTemplate (omit $definition "masterTemplate" "prefix" "quantity") }}
-          {{ dict $masterName $merged | toYaml | nindent 10 }}
-          {{ else }}
-          {{ $masterTemplate := get $definition.masterTemplate $masterTemplates }}
-          {{ if (hasKey $definition "appIds") }}{{ $appIds = concat $appIds $definition.appIds }}{{ end }}
-          {{ $merged := mergeOverwrite $defaultMasterTemplate $masterTemplate (omit $definition "masterTemplate" "prefix" "quantity") }}
-          {{ dict $masterName $merged | toYaml | nindent 10 }}
+            {{ $masterName := nospace (cat ($definition.prefix) (printf "%04d" (add $i 1))) }}
+            {{ $masterTemplate := $definition.masterTemplate }}
+            {{ $manyMasters = append $manyMasters (dict "name" $masterName "masterTemplate" $masterTemplate) }}
           {{ end }}
           {{ end }}
+
+          # append manyMasters to specific masters and calculate them all
+          {{ $allMasters := concat (get "specificMasters" $masterDefinitions) $manyMasters }}
+          {{ range $definition := $allMasters }}
+
+            {{ $masterName := $definition.name }}
+            {{ $masterTemplate := $defaultMasterTemplate }}
+            {{ if ne $definition.masterTemplate "default" }}
+              {{ $masterTemplate = get $definition.masterTemplate $masterTemplates }}
+            {{ end }}
+
+            # perform the merge (in the case of default master template, we double-merge, to no ill-effect
+            {{ $mergedDefinition := mergeOverwrite (deepCopy $defaultMasterTemplate) $masterTemplate (omit $definition "masterTemplate" "name") }}
+
+            # build appids safely as the node might not exist in definition
+            {{ $appIds := list }}
+            {{ if (hasKey $mergedDefinition "appIds") }}
+              {{ $appIds = $mergedDefinition.appIds }}
+            {{ end }}
+
+            # build provisioning node
+            {{ $provisioning := $mergedDefinition.provisioning }}
+
+            # build the jcasc node
+            {{ $jcasc := $mergedDefinition.jcasc }}
+
+            # build the plugin list, keep track of tier3s for use in building pluginCatalog
+            {{ $fullPluginList:= list }}
+            {{ $pluginCatalogList:= dict }}
+            {{ range $pluginName, $pluginValue := $mergedDefinition.plugins }}
+              {{ $fullPluginList = append $fullPluginList (dict "id" $pluginName) }}
+
+              {{ if not (hasKey $ucEnvelopePlugins $pluginName) }}
+                {{ $ucPlugin := get $pluginName $ucPlugins }}
+                {{ $version := $ucPlugin.version }}
+                {{ $pluginCatalogList = set $pluginCatalogList $pluginName (dict "version" $version) }}
+              {{ end }} 
+            {{ end }}
+
+            # build pluginCatalog node
+            {{ $pluginCatalog := dict "type" "plugin-catalog" "version" "1" "name" (cat "catalog for" $masterName) "displayName" (cat "Catalog For" $masterName)}}
+            {{ $pluginCatalog = set $pluginCatalog "configurations" (list (dict "description" "tier 3 plugins" "includePlugins" $pluginCatalogList)) }}
+
+            # build the bundle node
+            {{ $bundle := dict }}
+            {{ $bundle = set $bundle "pluginCatalog" $pluginCatalog }}
+            {{ $bundle = set $bundle "plugins" $fullPluginList }}
+            {{ $bundle = set $bundle "jcasc" $jcasc }}
+
+            # build the master definition
+            {{ $calculatedMaster := dict }}
+            {{ $calculatedMaster = set $calculatedMaster "provisioning" $provisioning }}
+            {{ $calculatedMaster = set $calculatedMaster "bundle" $bundle }}
+            {{ $calculatedMaster = set $calculatedMaster "appIds" $appIds }}
+
+            # add calculated master to masters list
+            {{ $masters = set $masters $masterName $calculatedMaster }}
+
+            # append appids to running list
+            {{ $globalAppIds = concat $globalAppIds $appIds }}
           {{ end }}
-    - appIds: {{ $appIds | uniq | toJson }}
+
+          {{ $masters | toYaml | nindent 10 }}
+    - appIds: {{ $globalAppIds | uniq | toJson }}
 releases:
 - name: oc-extra-plugins
   namespace: cloudbees
