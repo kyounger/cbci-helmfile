@@ -1,4 +1,5 @@
 //only runs on CJOC
+
 import com.cloudbees.masterprovisioning.kubernetes.KubernetesMasterProvisioning
 import com.cloudbees.opscenter.server.casc.BundleStorage
 import com.cloudbees.opscenter.server.model.ManagedMaster
@@ -8,9 +9,10 @@ import hudson.ExtensionList
 import io.fabric8.kubernetes.client.utils.Serialization
 import jenkins.model.Jenkins
 import org.apache.commons.io.FileUtils
+
 import java.util.logging.Logger
 
-def main() {
+void main() {
     String scriptName = "master-provisioner.groovy"
     Logger logger = Logger.getLogger(scriptName)
     logger.info("Starting master provisioning script.")
@@ -44,6 +46,7 @@ def main() {
     }
     logger.info("Master Provisioning script finished.")
 }
+
 main()
 
 private void createMM(String masterName, def masterDefinition) {
@@ -51,11 +54,11 @@ private void createMM(String masterName, def masterDefinition) {
 
     String appIds = masterDefinition.appIds?.join(",")
 
+    masterDefinition.provisioning["envVars"]="APP_IDS=${appIds}"
+    masterDefinition.provisioning["yaml"]=getManagedMasterYamlToMerge(masterName)
     masterDefinition.provisioning.each { k, v ->
         configuration["${k}"] = v
     }
-    configuration["envVars"] = "APP_IDS=${appIds}"
-    configuration["yaml"] = getManagedMasterYamlToMerge(masterName)
 
     ManagedMaster master = Jenkins.instance.createProject(ManagedMaster.class, masterName)
 
@@ -69,9 +72,12 @@ private void createMM(String masterName, def masterDefinition) {
     println "Run onModified..."
     master.onModified()
 
-    createOrUpdateCascBundle(masterName, masterDefinition.bundle)
+    println "Creating bundle for ${masterName}."
+    createEntryInSecurityFile(masterName)
+    createOrUpdateBundle(masterDefinition.bundle, masterName)
+    setBundleSecurity(masterName, true)
 
-    applyRbacAtMasterRoot(masterName)
+    //applyRbacAtMasterRoot(masterName)
 
     //ok, now we can actually boot this thing up
     println "Ensure master starts."
@@ -95,27 +101,40 @@ private void createMM(String masterName, def masterDefinition) {
 }
 
 private void updateMM(String masterName, def masterDefinition) {
-    println "Master with this name already exists. Updating it."
+    println "Master with this name already exists. Checking if definition has changed."
+    boolean masterDefinitionIsChanged = false
+
     ManagedMaster managedMaster = OperationsCenter.getInstance().getConnectedMasters().find { it.name == masterName } as ManagedMaster
     def currentConfiguration = managedMaster.configuration
 
     String appIds = masterDefinition.appIds?.join(",")
+    masterDefinition.provisioning["envVars"]="APP_IDS=${appIds}"
+    masterDefinition.provisioning["yaml"]=getManagedMasterYamlToMerge(masterName)
 
     masterDefinition.provisioning.each { k, v ->
-        currentConfiguration["${k}"] = v
+        if (currentConfiguration["${k}"] != v) {
+            currentConfiguration["${k}"] = v
+            masterDefinitionIsChanged = true
+        }
     }
-    currentConfiguration["envVars"] = "APP_IDS=${appIds}"
-    currentConfiguration["yaml"] = getManagedMasterYamlToMerge(masterName)
+    masterDefinitionIsChanged = stateYamlHasChanged(masterDefinition.bundle, masterName)
 
-    managedMaster.configuration = currentConfiguration
-    managedMaster.save()
+    if (masterDefinitionIsChanged) {
+        println "Bundle with this masterName already exists. Updating it..."
+        createOrUpdateBundle(masterDefinition.bundle, masterName)
+        setBundleSecurity(masterName, false)
 
-    applyRbacAtMasterRoot(masterName)
+        println "Master Definition has changed since last run. Updating it."
+        managedMaster.configuration = currentConfiguration
+        managedMaster.save()
 
-    createOrUpdateCascBundle(masterName, masterDefinition.bundle)
+        //applyRbacAtMasterRoot(masterName)
 
-    //todo: check if this action can be taken first
-    managedMaster.restartAction(false)
+        //todo: check if this action can be taken first
+        managedMaster.restartAction(false)
+    } else {
+        println "Master Definition same as last run. NOT updating it."
+    }
 }
 
 
@@ -139,81 +158,65 @@ private void applyRbacAtMasterRoot(String masterName) {
 //    container.addGroup(group)
 }
 
-//instantiate a bundle for the master
-private void createOrUpdateCascBundle(String masterName, def bundle) {
-    def destinationDir = new File("/var/jenkins_home/jcasc-bundles-store/${masterName}")
-    def destinationBundleDotYamlFileHandle = new File("/var/jenkins_home/jcasc-bundles-store/${masterName}/bundle.yaml")
-    int bundleVersion = 1
-
-    if (destinationDir.exists()) {
-        println "Bundle with this masterName already exists. Updating it..."
-
-        bundleVersion = getExistingBundleVersion(destinationBundleDotYamlFileHandle) + 1
-
-        createOrUpdateBundle(destinationDir, bundle, masterName, bundleVersion, destinationBundleDotYamlFileHandle)
-        setBundleSecurity(masterName, false)
-    } else {
-        println "Bundle with this masterName does not exist. Creating it..."
-
-        createEntryInSecurityFile(masterName)
-
-        createOrUpdateBundle(destinationDir, bundle, masterName, bundleVersion, destinationBundleDotYamlFileHandle)
-        setBundleSecurity(masterName, true)
-    }
-}
-
-private void setBundleSecurity(String masterName, boolean regenerateBundleToken) {
+private static void setBundleSecurity(String masterName, boolean regenerateBundleToken) {
     sleep(500)
     ExtensionList.lookupSingleton(BundleStorage.class).initialize()
     BundleStorage.AccessControl accessControl = ExtensionList.lookupSingleton(BundleStorage.class).getAccessControl()
     accessControl.updateMasterPath(masterName, masterName)
-    if(regenerateBundleToken) {
+    if (regenerateBundleToken) {
         accessControl.regenerate(masterName)
     }
 }
 
-private void createOrUpdateBundle(File destinationDir, def bundle, String masterName, int bundleVersion, File bundleYamlFileHandle) {
-    createOrUpdateBundleDir(destinationDir, bundle)
-    writeBundleYamlFile(masterName, bundleVersion, bundleYamlFileHandle)
-}
+private static void createOrUpdateBundle(def bundleDefinition, String masterName) {
+    String masterBundleDirPath = getMasterBundleDirPath(masterName)
+    def masterBundleDirHandle = new File(masterBundleDirPath)
 
-private void createOrUpdateBundleDir(File destinationDir, def bundle) {
-    if (destinationDir.exists()) {
-        FileUtils.forceDelete(destinationDir)
+    File jenkinsYamlHandle = new File(masterBundleDirPath + "/jenkins.yaml")
+    File pluginsYamlHandle = new File(masterBundleDirPath + "/plugins.yaml")
+    File pluginCatalogYamlHandle = new File(masterBundleDirPath + "/plugin-catalog.yaml")
+    File bundleYamlHandle = new File(masterBundleDirPath + "/bundle.yaml")
+    File stateFileHandle = new File(masterBundleDirPath + "/state.yaml")
+
+    int bundleVersion = getExistingBundleVersion(bundleYamlHandle) + 1
+
+    if (masterBundleDirHandle.exists()) {
+        FileUtils.forceDelete(masterBundleDirHandle)
     }
-    FileUtils.forceMkdir(destinationDir)
-
-    def destinationDirPath = destinationDir.getAbsolutePath()
+    FileUtils.forceMkdir(masterBundleDirHandle)
 
     def yamlMapper = Serialization.yamlMapper()
-    def jcasc = yamlMapper.writeValueAsString(bundle.jcasc)?.replace("---", "")?.trim()
-    def plugins = yamlMapper.writeValueAsString([plugins: bundle.plugins])?.replace("---", "")?.trim()
-    def pluginCatalog = yamlMapper.writeValueAsString(bundle.pluginCatalog)?.replace("---", "")?.trim()
+    def jcascYaml = yamlMapper.writeValueAsString(bundleDefinition.jcasc)?.replace("---", "")?.trim()
+    def pluginsYaml = yamlMapper.writeValueAsString([plugins: bundleDefinition.plugins])?.replace("---", "")?.trim()
+    def pluginCatalogYaml = yamlMapper.writeValueAsString(bundleDefinition.pluginCatalog)?.replace("---", "")?.trim()
+    def bundleYaml = getBundleYamlContents(masterName, bundleVersion)
+    def stateFileYaml = yamlMapper.writeValueAsString(bundleDefinition)
 
-    if (jcasc == "null") {
-        jcasc = ""
-    }
-    if (plugins == "null") {
-        plugins = ""
-    }
-    if (pluginCatalog == "null") {
-        pluginCatalog = ""
-    }
+    if (jcascYaml == "null") { jcascYaml = "" }
+    if (pluginsYaml == "null") { pluginsYaml = "" }
+    if (pluginCatalogYaml == "null") { pluginCatalogYaml = "" }
 
-    File jenkinsYaml = new File(destinationDirPath + "/jenkins.yaml")
-    jenkinsYaml.createNewFile()
-    jenkinsYaml.text = jcasc
+    jenkinsYamlHandle.createNewFile()
+    jenkinsYamlHandle.text = jcascYaml
 
-    File pluginsYaml = new File(destinationDirPath + "/plugins.yaml")
-    pluginsYaml.createNewFile()
-    pluginsYaml.text = plugins
+    pluginsYamlHandle.createNewFile()
+    pluginsYamlHandle.text = pluginsYaml
 
-    File pluginCatalogYaml = new File(destinationDirPath + "/plugin-catalog.yaml")
-    pluginCatalogYaml.createNewFile()
-    pluginCatalogYaml.text = pluginCatalog
+    pluginCatalogYamlHandle.createNewFile()
+    pluginCatalogYamlHandle.text = pluginCatalogYaml
+
+    bundleYamlHandle.createNewFile()
+    bundleYamlHandle.text = bundleYaml
+
+    stateFileHandle.createNewFile()
+    stateFileHandle.text = stateFileYaml
 }
 
-private void createEntryInSecurityFile(String masterName) {
+private static String getMasterBundleDirPath(String masterName) {
+    return "/var/jenkins_home/jcasc-bundles-store/${masterName}"
+}
+
+private static void createEntryInSecurityFile(String masterName) {
     //create entry in security file; only the first time we create a bundle and never again. Hopefully this goes
     //away in future versions of CB CasC
     String newerEntry = """\n<entry>
@@ -236,9 +239,8 @@ private void createEntryInSecurityFile(String masterName) {
     cascSecFile.write(cascSecFileContents)
 }
 
-private void writeBundleYamlFile(String masterName, int bundleVersion, bundleYamlFileHandle) {
-    bundleYamlFileHandle.write(
-            """id: '${masterName}'
+private static String getBundleYamlContents(String masterName, int bundleVersion) {
+    return """id: '${masterName}'
 version: '${bundleVersion}'
 apiVersion: '1'
 description: 'Bundle for ${masterName}'
@@ -249,10 +251,12 @@ jcasc:
 catalog:
 - 'plugin-catalog.yaml'
 """
-    )
 }
 
-private int getExistingBundleVersion(File bundleYamlFileHandle) {
+private static int getExistingBundleVersion(File bundleYamlFileHandle) {
+    if(!bundleYamlFileHandle.exists()) {
+        return 0
+    }
     def versionLine = bundleYamlFileHandle.readLines().find { it.startsWith("version") }
     String version = versionLine.replace("version:", "").replace(" ", "").replace("'", "").replace('"', '')
     return version as int
@@ -285,3 +289,13 @@ metadata:
 """
 }
 
+static boolean stateYamlHasChanged(def bundleDefinition, String masterName) {
+    def yamlMapper = Serialization.yamlMapper()
+
+    def stateFileYaml = yamlMapper.writeValueAsString(bundleDefinition)
+    File stateFileHandle = new File(getMasterBundleDirPath(masterName) + "/state.yaml")
+    if(stateFileHandle.exists()) {
+        return (stateFileHandle.text != stateFileYaml)
+    }
+    return true
+}
