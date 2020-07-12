@@ -21,8 +21,8 @@ First thing to note: this is for "CloudBees CI Modern", the Kubernetes-based var
 - No manual interventions during install/upgrade.
 - No deriving new docker images.
 - No forks of an upstream helm chart.
-- Uses only Jenkins/CloudBees CI/Kubernetes/helm primitives and templating via Go Templates in helm and helmfile. We agument and fill gaps where we have to (additional helm charts, JCasC, Groovy scripts, etc.)
-- Favor self-configuration over imperative control. As an example, we show preference to mount a groovy script to a master so it boots up and configures itself, versus booting the master and subsequently calling its REST API.
+- Uses only Jenkins/CloudBees CI/Kubernetes/helm primitives and templating via Go Templates in helm and helmfile. We agument and fill gaps where we have to (pre-pulling extra plugins on CJOC, JCasC on CJOC, Groovy scripts where JCasC doesn't work, etc.)
+- Favor self-configuration. As an example, we show preference to mount a groovy script to a master so it boots up and configures RBAC itself, versus booting the master and subsequently calling its REST API.
 - No one should ever need to go into the CJOC UI (and possibly never a Master's UI).
 - Self-servicing a master should be simple and secure.
 - Make decisions that maintain the supportability of the product, while enabling functionality that might not be present out of the box.
@@ -56,14 +56,14 @@ to adjust cluster state. This last process is also very easily wrapped into a CI
 
 - Infrastructure
 
-  * GCP terraform module for CBCI provides an example of how to provision a Kubernetes cluster. Creates all the necessary GCP resources, the GKE cluster and its NodePools. 
+  * GCP terraform module for CloudBees CI provides an example of how to provision a Kubernetes cluster. Creates all the necessary GCP resources, the GKE cluster and its NodePools. 
   * GCP/GKE are not required. Any Kubernetes cluster 1.15 or later should [theoretically] work with this approach. Currently only tested in GCP/GKE.
   * TODO! This component is not published yet, but can be shared if needed.
 
 - Applications
 
   * All applications (and supplemental resources) are packaged as helm charts.
-  * `helmfile` declaratively manages all the helm chart installs.
+  * `helmfile` declaratively manages all the helm chart installations
 
   - Helm Charts
     - CloudBees CI (`cloudbees-core`) helm chart
@@ -79,7 +79,7 @@ to adjust cluster state. This last process is also very easily wrapped into a CI
     - prometheus
     - grafana
     - openldap
-      - Probably the most common authentication realm used with CBCI. Also open source and easily configured. A good pick for a reference implementation.
+      - Probably the most common authentication realm used with CloudBees CI. Also open source and easily configured. A good pick for a reference implementation.
     - helper charts via the incubator/raw chart — these will be explained in detail later.
       - oc-extra-plugins
       - cm-cluster-issuer
@@ -138,23 +138,44 @@ What about the helm or helmfile providers that are available for terraform (or u
 
 That is a reasonable approach. The perspective here is that the applications are managed separately from the infrastructure. But sometimes that overlaps. Nothing wrong with having terraform call helmfile if that works for you. There is also a terraform-helmfile-provider that might be worth looking into if you have interest in really hooking these tools together. 
 
-A single command of `helmfile apply` (possibly with the added `-e` flag, to specify an environment) is our goal. This enables effective long term operation of the cluster and forces this to be the only imperative interface to the entire cluster. Our terraform module outputs a yaml file that can be fed as an external environment values file to helmfile. However, we don't expect much of the state of the cluster to change to the degree that hooking these tools together would provide long-term continous benefit.
+A single command of `helmfile apply` (possibly with the added `-e` flag, to specify an environment) is the goal. This enables effective long term operation of the cluster and forces this to be the only imperative interface. The terraform module outputs a yaml file that can be fed as an external environment values file to helmfile. However, we don't expect much of the state of the cluster to change to the degree that hooking these tools together would provide long-term continous benefit.
 
 ### Conclusion
 
 Helmfile was a natural fit and works well for this use case. These other tools are great and have their place, and might do a better job given a different set of requirements. If you like them, use them! This is an opinionated approach, so sticking with that theme: helmfile it is.
 
+### Gaps
+
+Helmfile also allows us to fill some gaps without forking the `cloudbees-core` helm chart (or others). E.g. defining masters and being able to install resources specifically for them, adding the extra plugins to the OC, etc.
+
 ## Getting started
 
-1. Ensure you have a k8s cluster created and set as your current context
-2. Clone this repo
-3. `cp cloudbees-ci-template.yaml cloudbees-ci.yaml`
-4. Edit any values you need to, inserting license, defining master templates, masters, etc.
-5. Run `helmfile template` to see if all is configured correctly to produce the yaml. Not explicitly necessary, but a nice check before running the next step.
-6. Ensure an environment variable named `ENV_ABSTRACTED_PW` is set to some random value and is exported
-7. Run `helmfile sync` (or `export ENV_ABSTRACTED_PW=somerandomvalue helmfile sync` if you don't have the env var exported in your shell). We have to use `sync` instead of `apply` on the first run in case there are any CRDs that need to be installed into the cluster — these will fail on a `apply/diff`, because it can't validate the generated resources against their required definitions.
-8. Wait for the install to finish and log in.
-9. Make an edit to your `cloudbees-ci.yaml` file and rerun `helmfile apply` to see the changes apply. 
+### Prerequisites
+
+1. Ensure you have a GKE cluster created and set as your current context.
+2. Currently the installer expects a static ip for the nginx-ingress-controller LoadBalancer. This needs to be specified in the initial values.
+3. DNS host entry that points to the static IP.
+4. These cli tools are used and need to be installed: `helm` (v3), `helmfile`,  `jq`, `yq`, and `wget` (used for fetching tier3 plugins)
+
+### Create
+
+1. Clone this repo.
+2. `cp cloudbees-ci-template.yaml cloudbees-ci.yaml`
+3. Edit any values you need to, inserting license, defining master templates, masters, etc.
+4. Run `helmfile template` to see if all is configured correctly. Not explicitly necessary, but a nice check before running the next step.
+5. Ensure an environment variable named `ENV_ABSTRACTED_PW` is set to some random secure value and is exported. 
+
+>  For demonstration purposes this is how we set all passwords in a reasonably secure manner. In the TODO list is implementing external credentials — which is clearly needed for any sort of proper implementation.
+
+6. Run `helmfile sync`
+> (or `export ENV_ABSTRACTED_PW=somerandomvalue helmfile sync` if you don't have/want the env var exported in your shell). We have to use `sync` instead of `apply` on the first run in case there are any CRDs that need to be installed into the cluster — these will fail on a `apply/diff`, because it can't validate the generated resources against their required definitions.
+7. Wait for the install to finish and log in.
+
+### Update
+
+1. Make an edit to your `cloudbees-ci.yaml` file.
+2. Run `helmfile apply` to see the changes apply.
+3. `helmfile apply` is used after the initial install, unless you are adding CRDs _AND_ those CRDs are used by a chart in the same operation. Our first install is exactly this, because of the cert-manager CRDs that need to exist.
 
 ### Notes
 
@@ -229,7 +250,7 @@ A common paradigm used by many organizations is to control applications/componen
 
 #### Security
 
-Depending on your level of trust and threat modeling, you may be comfortable running fewer masters. Part of the consideration here is that CBCI Modern runs on Kubernetes and securing workloads in Kubernetes requires us to implement certain design patterns. For example, we put CJOC, each master, and each master's agents in their own respective Namespaces and give them their own Service Accounts. This might seem like overkill to some (and for some it might be), but to ensure masters (and their agents) are isolated from each other, this is required. Additionally, a master's agents typically have a lower trust threshold and therefore are run in their own namespace with their own Service Account.
+Depending on your level of trust and threat modeling, you may be comfortable running fewer masters. Part of the consideration here is that CloudBees CI Modern runs on Kubernetes and securing workloads in Kubernetes requires us to implement certain design patterns. For example, we put CJOC, each master, and each master's agents in their own respective Namespaces and give them their own Service Accounts. This might seem like overkill to some (and for some it might be), but to ensure masters (and their agents) are isolated from each other, this is required. Additionally, a master's agents typically have a lower trust threshold and therefore are run in their own namespace with their own Service Account.
 
 #### Resource Contstraints
 
