@@ -103,7 +103,7 @@ masters:
         cloudbees-disk-usage-simple: {version: auto}
       jcasc:
         jenkins:
-          systemMessage: "Jenkins configured using CasC bundle template: basic-a."
+          systemMessage: "Jenkins configured using master template: basic-a."
         jobs:
         - script: |
             folder('project-a') {
@@ -116,7 +116,7 @@ masters:
         cloudbees-disk-usage-simple: {version: auto}
       jcasc:
         jenkins:
-          systemMessage: "Jenkins configured using CasC bundle template: basic-b."
+          systemMessage: "Jenkins configured using master template: basic-b."
         jobs:
         - script: |
             folder('project-b') {
@@ -142,40 +142,27 @@ masters:
       appIds:
         - "AD"
         - "AE"
+    - name: master3-dev
+      masterTemplate: basic-b
+      appIds:
+        - "AD"
+        - "AE"
     - name: master4
       masterTemplate: basic-a
       provisioning:
         disk: 10
-        # TODO: make this work!!!!!!!!!!!!
       jcasc:
         jenkins:
-          systemMessage: "overridden"
+          systemMessage: "overridden for specific master4"
         jobs:
         - script: | 
-            organizationFolder('app-AG') {
-              description("Attempt to automatically create GH org")
-              displayName('Auto-created gh org')
-              organizations {
-                github {
-                  repoOwner("cbci-helmfile-org")
-                  credentialsId("cbci-helmfile-bot-token")
-                  traits {
-                    teamSlugFilter {
-                      teamSlug('app-AG')
-                      gitHubBranchDiscovery {
-                        strategyId(0)
-                      } 
-                      gitHubPullRequestDiscovery {
-                        strategyId(0)
-                      }
-                    }
-                  }
-                }
-              }
-              triggers {
-                cron('@daily')
-              }
+            folder('project-4') {
+                displayName('Project 4')
+                description('Folder for project 4')
             }
+      plugins:
+        chucknorris: {version: auto}
+        ec2: {version: auto}
       appIds:
         - "AG"
         - "AH"
