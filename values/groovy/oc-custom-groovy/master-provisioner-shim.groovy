@@ -10,6 +10,8 @@ import io.fabric8.kubernetes.client.utils.Serialization
 import io.jenkins.cli.shaded.org.apache.commons.lang.StringUtils
 import jenkins.model.Jenkins
 import org.apache.commons.io.FileUtils
+import io.fabric8.kubernetes.api.model.ConfigMap
+import io.fabric8.kubernetes.client.DefaultKubernetesClient
 
 void main() {
     println("Master Provisioning Shim script -- started.\n")
@@ -23,8 +25,9 @@ void main() {
         sleep(5000)
     }
 
-    def masterDefinitions = new File("/var/jenkins_config/master-definitions/masters.yaml")
-    def mastersYaml = masterDefinitions.text
+    def client = new DefaultKubernetesClient()
+    ConfigMap configMap = client.configMaps().inNamespace("cloudbees").withName("master-definitions").get()
+    def mastersYaml = configMap.getData()["masterDefinitions"]
 
     def yamlMapper = Serialization.yamlMapper()
     Map map = yamlMapper.readValue(mastersYaml, Map.class);

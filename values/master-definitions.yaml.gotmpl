@@ -4,5 +4,5 @@ resources:
   metadata:
     name: master-definitions
   data:
-    masters.yaml: |
+    masterDefinitions: |
       {{- .Values.calculatedMasters | toYaml | nindent 6 }}

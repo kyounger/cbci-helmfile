@@ -115,10 +115,6 @@ OperationsCenter:
     configMap:
       name: apply-license
       defaultMode: 420
-  - name: master-definitions
-    configMap:
-      name: master-definitions
-      defaultMode: 420
   - name: fsprofile
     configMap:
       name: fsprofile
@@ -139,7 +135,4 @@ OperationsCenter:
     readOnly: true
   - name: jcasc
     mountPath: /var/jenkins_config/jcasc
-    readOnly: true
-  - name: master-definitions
-    mountPath: /var/jenkins_config/master-definitions
     readOnly: true
