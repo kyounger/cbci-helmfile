@@ -1,6 +1,0 @@
-plugins:
-  - id: "github-branch-source"
-  - id: "maven-plugin"
-  - id: "configuration-as-code-groovy"
-  - id: "job-dsl"
-  - id: "pipeline-utility-steps"

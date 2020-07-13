@@ -251,7 +251,7 @@ private static int getExistingBundleVersion(File bundleYamlFileHandle) {
     return version as int
 }
 
-static boolean stateYamlHasChanged(def stateObject, String masterName) {
+private static boolean stateYamlHasChanged(def stateObject, String masterName) {
     def yamlMapper = Serialization.yamlMapper()
 
     String stateFileYaml = yamlMapper.writeValueAsString(stateObject)
@@ -276,7 +276,7 @@ static boolean stateYamlHasChanged(def stateObject, String masterName) {
     return true
 }
 
-static void writeStateYaml(def stateObject, String masterName) {
+private static void writeStateYaml(def stateObject, String masterName) {
     def yamlMapper = Serialization.yamlMapper()
     File stateFileHandle = new File(getMasterBundleDirPath(masterName) + "/state.yaml")
     def stateFileYaml = yamlMapper.writeValueAsString(stateObject)

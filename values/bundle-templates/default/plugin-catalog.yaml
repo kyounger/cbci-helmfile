@@ -1,9 +1,0 @@
-type: "plugin-catalog"
-version: "1"
-name: "must-have-catalog"
-displayName: "Must Have Master Catalog"
-configurations:
-- description: "Important plugins"
-  includePlugins:
-    job-dsl:
-      version: 1.77
