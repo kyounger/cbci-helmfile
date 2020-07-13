@@ -14,6 +14,11 @@ OperationsCenter:
       Host: {{ .Values.domain }} 
       SecretName: tls-cbcore
   ServiceType: ClusterIP
+  #ServiceAnnotations:
+  #  prometheus.io/scheme: 'http'
+  #  prometheus.io/path: '/cjoc/prometheus'
+  #  prometheus.io/port: '8080'
+  #  prometheus.io/scrape: 'true'
   JavaOpts:
     -Djenkins.install.runSetupWizard=false
     -Dcb.IMProp.fsProfiles=/usr/share/jenkins/fsProfile/custom-profile.json
