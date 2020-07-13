@@ -2,10 +2,10 @@ resources:
 - apiVersion: v1
   kind: ConfigMap
   metadata:
-    name: master-provisioner-script
+    name: master-provisioner-shim
   data:
-    master-provisioner.groovy: |
-      {{ readFile "groovy/oc-custom-groovy/master-provisioner.groovy" | nindent 6 }}
+    master-provisioner-shim.groovy: |
+      {{ readFile "groovy/oc-custom-groovy/master-provisioner-shim.groovy" | nindent 6 }}
 
 - apiVersion: batch/v1
   kind: Job
@@ -26,14 +26,14 @@ resources:
           command: ["sh"]
           args: 
           - -c
-          - curl --data-urlencode script@/scripts/master-provisioner.groovy -v --user admin:$SECRET_TOKEN {{ .Values.ocUrl }}/scriptText
+          - curl --data-urlencode script@/scripts/master-provisioner-shim.groovy -v --user admin:$SECRET_TOKEN {{ .Values.ocUrl }}/scriptText
           volumeMounts:
           - mountPath: /scripts
             name: scripts
         volumes:
         - name: scripts
           configMap:
-            name: master-provisioner-script
+            name: master-provisioner-shim
             defaultMode: 420
         restartPolicy: Never
     backoffLimit: 1

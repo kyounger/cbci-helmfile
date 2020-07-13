@@ -22,6 +22,30 @@ masters:
   masterDefinitions:
     specificMasters:
     manyMasters:
+  yamlPatchTemplate: |
+    kind: StatefulSet
+    spec:
+      template:
+        spec:
+          containers:
+          - name: jenkins
+            volumeMounts:
+            - name: mm-custom-groovy
+              mountPath: /var/jenkins_config/configure-jenkins.groovy.d/
+          volumes:
+          - name: mm-custom-groovy
+            configMap:
+              defaultMode: 420
+              name: mm-custom-groovy
+              apiVersion: "apps/v1"
+    ---
+    kind: Service
+    metadata:
+      annotations:
+        prometheus.io/scheme: 'http'
+        prometheus.io/path: '/{{ .masterName }}/prometheus'
+        prometheus.io/port: '8080'
+        prometheus.io/scrape: 'true'
 cascBundleTemplates:
 ldap:
   roles:
@@ -30,3 +54,4 @@ ldap:
     - Admin
 teamTopology:
   usersPerAppId: 3
+

@@ -140,6 +140,7 @@ environments:
           {{ $defaultMasterTemplate := .Values.masters.defaultMasterTemplate }}
           {{ $masterTemplates := .Values.masters.masterTemplates }}
           {{ $masterDefinitions := .Values.masters.masterDefinitions }}
+          {{ $masterProvisioningYamlPatchTpl := .Values.masters.yamlPatchTemplate }}
 
           # transform the manyMasters into named specific masters
           {{ $manyMasters := list }}
@@ -172,6 +173,21 @@ environments:
 
             # build provisioning node
             {{ $provisioning := $mergedDefinition.provisioning }}
+            {{ $yaml := (tpl ($masterProvisioningYamlPatchTpl) (dict "masterName" $masterName)) }}
+            {{ $provisioning = set $provisioning "yaml" $yaml }}
+            # Add an APP_IDS envVar to provisioning.
+            {{ $envVars := "" }}
+            {{ if hasKey $provisioning "envVars" }}
+              {{ $envVars = $provisioning.envVars }}
+            {{ end }}
+            {{ $appIdsCsv := ($appIds | join ",") }}
+            {{ if or $envVars $appIdsCsv }}
+              {{ $appIdsEnvVar := nospace (cat "APP_IDS=" $appIdsCsv) }}
+              {{ $envVars = (cat $envVars "\n" $appIdsEnvVar) }}
+              {{ $provisioning = set $provisioning "envVars" $envVars }}
+            {{ else }}
+              {{ $provisioning = unset $provisioning "envVars" }}
+            {{ end }}
 
             # build the jcasc node
             {{ $jcasc := $mergedDefinition.jcasc }}
