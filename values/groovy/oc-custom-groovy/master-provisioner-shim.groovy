@@ -110,9 +110,26 @@ private void updateMM(String masterName, def masterDefinition) {
 
         writeStateYaml(masterDefinition, masterName)
 
-        //todo: check if this action can be taken first
         println "Restarting master '${masterName}'."
-        managedMaster.restartAction(false)
+        def validActionSet = managedMaster.getValidActionSet()
+        if (validActionSet.contains(ManagedMaster.Action.ACKNOWLEDGE_ERROR)) {
+            managedMaster.acknowledgeErrorAction()
+            sleep(50)
+        }
+
+        validActionSet = managedMaster.getValidActionSet()
+        if (validActionSet.contains(ManagedMaster.Action.RESTART)) {
+            managedMaster.restartAction(false);
+            sleep(50)
+        } else if (validActionSet.contains(ManagedMaster.Action.START)) {
+            managedMaster.startAction();
+            sleep(50)
+        } else if (validActionSet.contains(ManagedMaster.Action.PROVISION_AND_START)) {
+            managedMaster.provisionAndStartAction();
+            sleep(50)
+        } else {
+            throw "Cannot (re)start the master." as Throwable
+        }
     } else {
         println "Master Definition for master '${masterName}' same as last run. NOT updating it."
     }
