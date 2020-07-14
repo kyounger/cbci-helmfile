@@ -46,6 +46,32 @@ masters:
         prometheus.io/path: '/{{ .masterName }}/prometheus'
         prometheus.io/port: '8080'
         prometheus.io/scrape: 'true'
+appIdConfig:
+  template: |
+    organizationFolder('app-{{ .appId }}/github-org-app-{{ .appId }}') {
+      description("Attempt to automatically create GH org")
+      displayName('github-org-app-{{ .appId }}')
+      organizations {
+        github {
+          repoOwner("cbci-helmfile-org")
+          credentialsId("cbci-helmfile-bot-token")
+          traits {
+            teamSlugFilter {
+              teamSlug('app-{{ .appId }}')
+              gitHubBranchDiscovery {
+                strategyId(0)
+              }
+              gitHubPullRequestDiscovery {
+                strategyId(0)
+              }
+            }
+          }
+        }
+      }
+      triggers {
+        cron('@daily')
+      }
+    }
 cascBundleTemplates:
 ldap:
   roles:

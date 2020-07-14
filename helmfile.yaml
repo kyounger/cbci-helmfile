@@ -141,6 +141,7 @@ environments:
           {{ $masterTemplates := .Values.masters.masterTemplates }}
           {{ $masterDefinitions := .Values.masters.masterDefinitions }}
           {{ $masterProvisioningYamlPatchTpl := .Values.masters.yamlPatchTemplate }}
+          {{ $ghOrgScriptTpl := .Values.appIdConfig.template }}
 
           # transform the manyMasters into named specific masters
           {{ $manyMasters := list }}
@@ -191,6 +192,17 @@ environments:
 
             # build the jcasc node
             {{ $jcasc := $mergedDefinition.jcasc }}
+
+            # special case for creating appId GH folders
+            {{ $jcascJobs := list }}
+            {{ if (hasKey $jcasc "jobs") }}
+              {{ $jcascJobs = $jcasc.jobs }}
+            {{ end }}
+            {{ range $appId := $appIds }}
+              {{ $ghOrgScript := (tpl ($ghOrgScriptTpl) (dict "appId" $appId)) }}
+              {{ $jcascJobs = append $jcascJobs (dict "script" $ghOrgScript) }}
+            {{ end }}
+            {{ $jcasc = set $jcasc "jobs" $jcascJobs }}
 
             # build the plugin list, keep track of tier3s for use in building pluginCatalog
             {{ $fullPluginList:= list }}
