@@ -16,15 +16,6 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient
 void main() {
     println("Master Provisioning Shim script -- started.\n")
 
-    if (OperationsCenter.getInstance().getConnectedMasters().size() == 0) {
-        // pretty hacky, but we need to wait a few seconds when booting the CJOC the first time and
-        // the heuristic of "no masters defined yet" is reasonable for determining that.
-        // If you're running this from the script console or jenkins cli, and have no masters, you
-        // can just comment out this line if you want to save 5 second of your life.
-        println("Sleeping for 5 seconds.")
-        sleep(5000)
-    }
-
     def client = new DefaultKubernetesClient()
     ConfigMap configMap = client.configMaps().inNamespace("cloudbees").withName("master-definitions").get()
     def mastersYaml = configMap.getData()["masterDefinitions"]
@@ -41,7 +32,7 @@ void main() {
         } else {
             createMM(masterName, masterDefinition)
         }
-        sleep(1000)
+        sleep(50)
         println("Finished with master '${masterName}'.\n")
     }
     println("Master Provisioning Shim script -- finished.\n")
@@ -51,19 +42,16 @@ main()
 
 private void createMM(String masterName, def masterDefinition) {
     println "Master '${masterName}' does not exist yet. Creating it now."
-    def configuration = new KubernetesMasterProvisioning()
 
+    def configuration = new KubernetesMasterProvisioning()
     masterDefinition.provisioning.each { k, v ->
         configuration["${k}"] = v
     }
 
     ManagedMaster master = Jenkins.instance.createProject(ManagedMaster.class, masterName)
-
     master.setConfiguration(configuration)
     master.properties.replace(new ConnectedMasterLicenseServerProperty(null))
-
     master.save()
-
     master.onModified()
 
     createEntryInSecurityFile(masterName)
@@ -76,20 +64,19 @@ private void createMM(String masterName, def masterDefinition) {
 
     //ok, now we can actually boot this thing up
     println "Ensuring master '${masterName}' starts..."
-
     def validActionSet = master.getValidActionSet()
     if (validActionSet.contains(ManagedMaster.Action.ACKNOWLEDGE_ERROR)) {
         master.acknowledgeErrorAction()
-        sleep(500)
+        sleep(50)
     }
 
     validActionSet = master.getValidActionSet()
     if (validActionSet.contains(ManagedMaster.Action.START)) {
         master.startAction();
-        sleep(500)
+        sleep(50)
     } else if (validActionSet.contains(ManagedMaster.Action.PROVISION_AND_START)) {
         master.provisionAndStartAction();
-        sleep(500)
+        sleep(50)
     } else {
         throw "Cannot start the master." as Throwable
     }
@@ -153,7 +140,7 @@ private void applyRbacAtMasterRoot(String masterName) {
 }
 
 private static void setBundleSecurity(String masterName, boolean regenerateBundleToken) {
-    sleep(500)
+    sleep(100)
     ExtensionList.lookupSingleton(BundleStorage.class).initialize()
     BundleStorage.AccessControl accessControl = ExtensionList.lookupSingleton(BundleStorage.class).getAccessControl()
     accessControl.updateMasterPath(masterName, masterName)
