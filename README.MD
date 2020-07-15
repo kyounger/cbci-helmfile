@@ -282,3 +282,132 @@ If you've run a large Jenkins instance with a lot of disparate usage, you have e
 - Replicate an environment easily to a lower environment for testing.
 - Dev/Test/**/Prod environment parity is achievable and provable. 
 
+## TODOs
+
+### In general order of priority
+
+- [ ] make master-provisioning-shim output more obvious when something changes
+
+- [ ] Decide on _how_ to run master-provisioner-shim.groovy. This needs to be _triggered_ on an install (or restart of CJOC?), but shouldn't be solely tied to a CJOC restart. Until piecemeal updates works, run this manually, otherwise every master is restarted and re-bundled when CJOC is restarted 😱.
+
+  - [x] Run as init groovy script on cjoc -- this breaks so many thing.
+
+  - [x] Run initially as a k8s job to demonstrate initial install, and capability to run this script from in the cluster, but outside CJOC
+
+  - Approaches:
+
+    - [ ] Deploy a simple controller to check when the `master-definition` config map changes and just ping OC with the shim
+      - https://github.com/flant/shell-operator
+      - https://medium.com/flant-com/kubernetes-shell-operator-76c596b42f23
+      - https://github.com/flant/addon-operator
+
+    * Ops-mm with a something that can detect when the configmap changes? On a cron schedule (ugh)?
+    * CRAZY: demonstrate how to use a set of CRDs (`MasterTemplate`s, `MasterDefinition`s, etc.)
+
+- [ ] Continue to flesh out documentation
+
+  - [ ] document how to "upgrade master images"
+
+- [ ] AppID fully implemented
+
+  - [x] Creating the users/groups in ldap based on appIds
+  - [ ] Switch to using job-dsl folder creation entirely and only have the groovy script apply RBAC groups?
+  - [ ] Update Github tf module
+    - [ ] add repo `Jenkinsfile`s
+  - [x] Add job-dsl `-script` "append"
+  - [ ] Automating Shared library setup
+    - [ ] global shared library
+    - [ ] AppID specific library
+
+- [ ] Multi-namespace
+
+  - namespace for just OC
+  - namespace per master
+  - namespace per master's agents
+  - Ensure NetworkPolicy is adjusted here
+
+- [ ] Prometheus + Grafana
+
+  - [x] Add helm charts and config
+  - [x] Monitor each master
+  - [ ] Prometheus plugin 
+    - [ ] on CJOC
+      * 🔴 BLOCKED. This BREAKS because `prometheus` plugin not in OC UC!
+    - [x] on masters
+    - [x] automatic configuration
+  - [ ] push `https.enabled` down into prometheus/grafana charts
+  - [ ] Authenticate the endpoint
+    - [x] jcasc configuration for this
+    - [ ] automatically add service account token and store in proper place for prometheus to use
+  - [ ] Explore queries
+  - [ ] Fix ingress issues
+  - [ ] Get granfana configured properly
+    * https://grafana.com/grafana/dashboards/12571
+
+- [ ] Vault / external credentials
+
+- [ ] TF module for all this
+
+  - [ ] refactor and publish
+
+- [ ] Local Registry (nexus/artifactory would be more universal, but GCR is right there...) and enforce image pulls from it
+
+- [ ] Networkpolicy
+
+- [ ] Podsecuritypolicy
+
+  - [ ] enforce PSP: https://www.terraform.io/docs/providers/google/r/container_cluster.html#pod_security_policy_config
+
+  - [ ] no root, no privileged
+
+  - [ ] Kaniko + gvisor nodes 
+
+    * allows for root user access, if required
+    * need some kind of convention to guarantee that we get a gvisor node when requested
+    * create a gvisor nodepool with tf in gke
+
+- [ ] GKE cluster in a VPC
+
+- [ ] Item creation
+
+  - [x] job-dsl for now
+  - [x] Current plan is a single github-branch-source org created per AppID
+    - Groovy is possible, too, since we're already creating the AppID folders/rbac on the masters
+
+- [ ] Do we recommend approaches to templating pipelines?
+
+  - My recommended approach for templating: https://www.jenkins.io/blog/2017/10/02/pipeline-templates-with-shared-libraries/
+
+- [ ] External agents (e.g. standard windows agents) for a master, how to let a team define this?
+
+- [ ] Consider backup/restore of PVs
+
+  * velero
+
+    * with underlying SC snapshotting
+    * in-process backups
+    * restore process for this entire system based on a backed-up state
+  * CB B/R plugin
+
+- [ ] Pipelinepolicy
+
+- [ ] Set up CI/CD for this
+
+  * PR -> some existing pipeline -> git checkout of repo with change -> run tf apply to create a test env -> hf apply -> manual validation of env
+
+  - Process0 problem
+  - Replicating the entire cluster into another environment (i.e. for testing purposes, DR)
+
+- [ ] build logs -- need to ship these off-master
+
+  * github reporting plugin
+
+- [ ] scaling section in docs
+
+- [ ] Find a way to walk the dependency tree to not have to specify all transitive dependencies of tier3 plugins
+
+- [ ] idea: create process that defines a "default" master's /core-casc-export/ data and quickly diffs and shows the details only relevant to a master that looks slightly different
+
+- [ ] figure out other metrics/monitoring aside from prometheus?
+
+### What else would we want that this doesn't cover?
