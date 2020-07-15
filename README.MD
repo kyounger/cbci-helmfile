@@ -162,6 +162,7 @@ Not all of this is supported by CloudBees. Part of the intention behind this eff
 2. Currently the installer expects a static ip for the nginx-ingress-controller LoadBalancer. This needs to be specified in the initial values.
 3. DNS host entry that points to the static IP.
 4. These cli tools are used and need to be installed: `helm` (v3), `helmfile`,  `jq`, `yq`, and `wget` (used for fetching tier3 plugins)
+5. The [ `helm-diff` plugin](https://github.com/databus23/helm-diff#install) must be installed.
 
 ### Create
 
