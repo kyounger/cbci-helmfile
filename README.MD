@@ -21,7 +21,7 @@ First thing to note: this is for "CloudBees CI Modern", the Kubernetes-based var
 - No manual interventions during install/upgrade.
 - No deriving new docker images.
 - No forks of an upstream helm chart.
-- Uses only Jenkins/CloudBees CI/Kubernetes/helm primitives and templating via Go Templates in helm and helmfile. We agument and fill gaps where we have to (pre-pulling extra plugins on CJOC, JCasC on CJOC, Groovy scripts where JCasC doesn't work, etc.)
+- Uses only Jenkins/CloudBees CI/Kubernetes/helm primitives and templating via Go Templates in helm and helmfile. We agument and fill gaps where we have to (pre-pulling extra plugins on CJOC, JCasC on CJOC, Groovy scripts where JCasC doesn't work, etc.)Wh
 - Favor self-configuration. As an example, we show preference to mount a groovy script to a master so it boots up and configures RBAC itself, versus booting the master and subsequently calling its REST API.
 - No one should ever need to go into the CJOC UI (and possibly never a Master's UI).
 - Self-servicing a master should be simple and secure.
@@ -147,6 +147,12 @@ Helmfile was a natural fit and works well for this use case. These other tools a
 ### Gaps
 
 Helmfile also allows us to fill some gaps without forking the `cloudbees-core` helm chart (or others). E.g. defining masters and being able to install resources specifically for them, adding the extra plugins to the OC, etc.
+
+## Caveat Emptor
+
+### Supported?
+
+Not all of this is supported by CloudBees. Part of the intention behind this effort, again, is to showcase what is possible, not provide a 100%-supported solution based on 100%-supported components. That is not currently possible. Examples of what is not supported would be any of the Tier 3 plugins (e.g. `job-dsl`, `prometheus`), any of the groovy scripts, putting the `configuration-as-code` plugin on CJOC, etc. So, user beware.
 
 ## Getting started
 
