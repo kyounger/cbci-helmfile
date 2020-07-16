@@ -154,6 +154,12 @@ Helmfile also allows us to fill some gaps without forking the `cloudbees-core` h
 
 Not all of this is supported by CloudBees. Part of the intention behind this effort, again, is to showcase what is possible, not provide a 100%-supported solution based on 100%-supported components. That is not currently possible. Examples of what is not supported would be any of the Tier 3 plugins (e.g. `job-dsl`, `prometheus`), any of the groovy scripts, putting the `configuration-as-code` plugin on CJOC, etc. So, user beware.
 
+### Be Ready
+
+If you do have a bug that you think is attributable to the underlying product, and not a filled gap, then the best situation to get support on that is to replicate the bug in a system that doesn't use the gap fillers. This means installing with no groovy auto-configuration, no jcasc on OC, provisioning masters manually, creating items manually, configuring RBAC manually, etc.
+
+You can decide if the benefits of using this fully-automated system outweigh the costs of potential out-of-support pitfalls.
+
 ## Getting started
 
 ### Prerequisites
@@ -306,6 +312,8 @@ If you've run a large Jenkins instance with a lot of disparate usage, you have e
 
 - [ ] Continue to flesh out documentation
 
+  - [ ] document each _gap_ and how we're filling it
+  - [ ] document each unsupported approach?
   - [ ] document how to "upgrade master images"
 
 - [ ] AppID fully implemented
