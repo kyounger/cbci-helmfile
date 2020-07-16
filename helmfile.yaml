@@ -1,108 +1,3 @@
-repositories:
-- name: stable
-  url: https://kubernetes-charts.storage.googleapis.com
-- name: incubator
-  url: https://kubernetes-charts-incubator.storage.googleapis.com
-- name: cloudbees
-  url: https://charts.cloudbees.com/public/cloudbees
-- name: jetstack
-  url: https://charts.jetstack.io
-- name: cetic
-  url: https://cetic.github.io/helm-charts
-- name: tanzu 
-  url: https://vmware-tanzu.github.io/helm-charts
-helmDefaults:
-  # wait for k8s resources via --wait. (default false)
-  wait: true
-  # time in seconds to wait for any individual Kubernetes operation (like Jobs for hooks, and waits on pod/pvc/svc/deployment readiness) (default 300)
-  timeout: 600
-  # performs pods restart for the resource if applicable (default false)
-  recreatePods: false
-  # limit the maximum number of revisions saved per release. Use 0 for no limit. (default 10) 
-  historyMax: 0
-  ### can be used to pass in a specific kubeconfig
-  # args:
-  #- --kubeconfig=../tf-kubeconfig.yaml
-releases:
-- name: oc-extra-plugins
-  namespace: cloudbees
-  chart: incubator/raw
-  values:
-  - values/oc-extra-plugins.yaml.gotmpl
-- name: master-provisioner
-  namespace: cloudbees
-  chart: incubator/raw
-  values:
-  - values/master-provisioner.yaml.gotmpl
-  needs:
-  - cloudbees/cbcore
-- name: master-definitions
-  namespace: cloudbees
-  chart: incubator/raw
-  values:
-  - values/master-definitions.yaml.gotmpl
-- name: prometheus
-  namespace: prometheus
-  chart: stable/prometheus
-  version: 11.6.2
-  values:
-  - values/prometheus.yaml.gotmpl
-- name: grafana
-  namespace: grafana
-  chart: stable/grafana
-  version: 5.3.5
-  values:
-  - values/grafana.yaml.gotmpl
-- name: nginx-ingress
-  namespace: nginx-ingress
-  chart: stable/nginx-ingress
-  version: 1.31.0
-  values:
-  - values/nginx-ingress.yaml.gotmpl
-- name: cbcore
-  namespace: cloudbees
-  chart: cloudbees/cloudbees-core
-  version: {{ .Values.cloudbeesCoreChartVersion }}
-  values:
-  - values/cbcore.yaml.gotmpl
-  needs:
-  - nginx-ingress/nginx-ingress
-  - cert-manager/cert-manager
-  - cloudbees/oc-extra-plugins
-  - cloudbees/master-definitions
-  - ldap/ldap
-- name: cert-manager
-  namespace: cert-manager
-  condition: https.enabled
-  chart: jetstack/cert-manager
-  version: v0.15.1
-  values:
-  - values/cert-manager.yaml.gotmpl
-  needs:
-  - nginx-ingress/nginx-ingress
-- name: ldap
-  namespace: ldap
-  chart: stable/openldap
-  version: 1.2.4
-  values:
-  - values/ldap.yaml.gotmpl
-- name: ldap-admin
-  namespace: ldap
-  chart: cetic/phpldapadmin
-  version: 0.1.3
-  values:
-  - values/phpldapadmin.yaml.gotmpl
-  needs:
-  - ldap/ldap
-- name: cm-cluster-issuer
-  condition: https.enabled
-  namespace: cert-manager
-  chart: incubator/raw
-  values:
-  - values/cluster-issuer.yaml.gotmpl
-  needs:
-  - cert-manager/cert-manager
-
 environments:
   default:
     values:
@@ -242,3 +137,108 @@ environments:
 
           {{ $masters | toYaml | nindent 10 }}
     - appIds: {{ $globalAppIds | uniq | toJson }}
+repositories:
+- name: stable
+  url: https://kubernetes-charts.storage.googleapis.com
+- name: incubator
+  url: https://kubernetes-charts-incubator.storage.googleapis.com
+- name: cloudbees
+  url: https://charts.cloudbees.com/public/cloudbees
+- name: jetstack
+  url: https://charts.jetstack.io
+- name: cetic
+  url: https://cetic.github.io/helm-charts
+- name: tanzu 
+  url: https://vmware-tanzu.github.io/helm-charts
+helmDefaults:
+  # wait for k8s resources via --wait. (default false)
+  wait: true
+  # time in seconds to wait for any individual Kubernetes operation (like Jobs for hooks, and waits on pod/pvc/svc/deployment readiness) (default 300)
+  timeout: 600
+  # performs pods restart for the resource if applicable (default false)
+  recreatePods: false
+  # limit the maximum number of revisions saved per release. Use 0 for no limit. (default 10) 
+  historyMax: 0
+  ### can be used to pass in a specific kubeconfig
+  # args:
+  #- --kubeconfig=../tf-kubeconfig.yaml
+releases:
+- name: oc-extra-plugins
+  namespace: cloudbees
+  chart: incubator/raw
+  values:
+  - values/oc-extra-plugins.yaml.gotmpl
+- name: master-provisioner
+  namespace: cloudbees
+  chart: incubator/raw
+  values:
+  - values/master-provisioner.yaml.gotmpl
+  needs:
+  - cloudbees/cbcore
+- name: master-definitions
+  namespace: cloudbees
+  chart: incubator/raw
+  values:
+  - values/master-definitions.yaml.gotmpl
+- name: prometheus
+  namespace: prometheus
+  chart: stable/prometheus
+  version: 11.6.2
+  values:
+  - values/prometheus.yaml.gotmpl
+- name: grafana
+  namespace: grafana
+  chart: stable/grafana
+  version: 5.3.5
+  values:
+  - values/grafana.yaml.gotmpl
+- name: nginx-ingress
+  namespace: nginx-ingress
+  chart: stable/nginx-ingress
+  version: 1.31.0
+  values:
+  - values/nginx-ingress.yaml.gotmpl
+- name: cbcore
+  namespace: cloudbees
+  chart: cloudbees/cloudbees-core
+  version: {{ .Values.cloudbeesCoreChartVersion }}
+  values:
+  - values/cbcore.yaml.gotmpl
+  needs:
+  - nginx-ingress/nginx-ingress
+  - cert-manager/cert-manager
+  - cloudbees/oc-extra-plugins
+  - cloudbees/master-definitions
+  - ldap/ldap
+- name: cert-manager
+  namespace: cert-manager
+  condition: https.enabled
+  chart: jetstack/cert-manager
+  version: v0.15.1
+  values:
+  - values/cert-manager.yaml.gotmpl
+  needs:
+  - nginx-ingress/nginx-ingress
+- name: ldap
+  namespace: ldap
+  chart: stable/openldap
+  version: 1.2.4
+  values:
+  - values/ldap.yaml.gotmpl
+- name: ldap-admin
+  namespace: ldap
+  chart: cetic/phpldapadmin
+  version: 0.1.3
+  values:
+  - values/phpldapadmin.yaml.gotmpl
+  needs:
+  - ldap/ldap
+- name: cm-cluster-issuer
+  condition: https.enabled
+  namespace: cert-manager
+  chart: incubator/raw
+  values:
+  - values/cluster-issuer.yaml.gotmpl
+  needs:
+  - cert-manager/cert-manager
+
