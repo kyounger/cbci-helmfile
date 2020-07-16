@@ -7,8 +7,15 @@ environments:
       # todo: I think we can use nil in the merge
     - ldapGlobalPassword: {{ requiredEnv "ENV_ABSTRACTED_PW" }}
     - ocUrl: {{ if .Values.https.enabled -}} https {{- else -}} http {{- end -}}://{{ .Values.domain }}/cjoc
-        {{ $cbcoreAppVersion :=  exec "helm" (list "show" "chart" "cloudbees/cloudbees-core" "--version" .Values.cloudbeesCoreChartVersion) | fromYaml | get "appVersion" nil }}
-    - cloudbeesCoreAppVersion: {{ $cbcoreAppVersion }}
+      {{ $cbcoreChartYaml :=  exec "helm" (list "show" "chart" "cloudbees/cloudbees-core" "--version" .Values.cloudbeesCoreChartVersion) | fromYaml }}
+      {{ $cbcoreAppVersion := $cbcoreChartYaml.appVersion  }}
+      {{ $cbcoreChartDeps := dict }}
+      {{ range $dep := $cbcoreChartYaml.dependencies }}
+        {{ $cbcoreChartDeps = set $cbcoreChartDeps $dep.name (dict "version" $dep.version) }}
+      {{ end }}
+      {{ $bundledNginxIngressVersion := (get "nginx-ingress" $cbcoreChartDeps).version }}
+    - cloudbeesCoreAppVersion: {{ $cbcoreChartYaml.appVersion }}
+
         {{ $url := nospace (cat "https://jenkins-updates.cloudbees.com/update-center/envelope-core-mm/update-center.json?version=" $cbcoreAppVersion) }}
         {{ $uc := exec "sh" (list "-c" (cat "wget -q -O - " $url " | sed '1d' | sed '$d' | jq -r | yq r - -P")) | fromYaml }}
 
@@ -195,7 +202,7 @@ releases:
 - name: nginx-ingress
   namespace: nginx-ingress
   chart: stable/nginx-ingress
-  version: 1.31.0
+  version: {{ $bundledNginxIngressVersion }}
   values:
   - values/nginx-ingress.yaml.gotmpl
 - name: cbcore
