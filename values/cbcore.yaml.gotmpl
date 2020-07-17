@@ -105,8 +105,8 @@ OperationsCenter:
               adminAddress: "{{ .Values.adminEmail }}"
     - name: mm-custom-groovy
       data:
-        10-create-folder-on-mm-with-rbac.groovy: |
-          {{- readFile "groovy/mm-custom-groovy/create-folder-on-mm-with-rbac.groovy" | nindent 10 }}
+        10-apply-rbac-to-appid-folders.groovy: |
+          {{- readFile "groovy/mm-custom-groovy/apply-rbac-to-appid-folders.groovy" | nindent 10 }}
   ExtraVolumes:
   - name: extra-plugins
     persistentVolumeClaim:

@@ -48,6 +48,10 @@ masters:
         prometheus.io/scrape: 'true'
 appIdConfig:
   template: |
+    folder('app-{{ .appId }}') {
+        displayName('app-{{ .appId }}')
+        description('Folder for app-{{ .appId }}')
+    }
     organizationFolder('app-{{ .appId }}/github-org-app-{{ .appId }}') {
       description("Attempt to automatically create GH org")
       displayName('github-org-app-{{ .appId }}')
