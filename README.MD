@@ -399,6 +399,10 @@ If you've run a large Jenkins instance with a lot of disparate usage, you have e
 
 - [ ] Pipelinepolicy
 
+- [ ] Autoscaling
+
+  - [ ] MM hibernation
+
 - [ ] Set up CI/CD for this
 
   * PR -> some existing pipeline -> git checkout of repo with change -> run tf apply to create a test env -> hf apply -> manual validation of env
