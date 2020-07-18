@@ -10,7 +10,7 @@ And fill some gaps.
 
 ### CloudBees CI Modern
 
-First thing to note: this is for "CloudBees CI Modern", the Kubernetes-based variant, and not "CloudBees CI Traditional". Kubernetes makes much of this possible, as it helps abstract much of the infrastructure concerns (though, they are concerns, indeed). Many of these opinions and approaches could be reworked into a Traditional install — but providing a reference implementation for it is less attractive, as the diversity in the underlying infrastructure, configuration management and other disparate tooling, and operation of it all, is much, much greater. This is part of the appeal of Kubernetes.
+First thing to note: this is for "CloudBees CI Modern", the Kubernetes-based variant, and not "CloudBees CI Traditional". Kubernetes makes much of this possible, as it helps abstract many of the infrastructure concerns (though, they are concerns, indeed). Most of these opinions and approaches could be reworked into a Traditional install — but providing a reference implementation for it is less attractive, as the diversity in the underlying infrastructure, configuration management and other disparate tooling, and operation of it all, is much, much greater. This is part of the appeal of Kubernetes.
 
 ## Goals, Guiding Principles, Decision-making
 
