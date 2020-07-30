@@ -292,6 +292,8 @@ If you've run a large Jenkins instance with a lot of disparate usage, you have e
 
 ### In general order of priority
 
+- [ ] overriding cpus seems to break
+
 - [ ] make master-provisioning-shim output more obvious when something changes
 
 - [ ] Decide on _how_ to run master-provisioner-shim.groovy. This needs to be _triggered_ on an install (or restart of CJOC?), but shouldn't be solely tied to a CJOC restart. Until piecemeal updates works, run this manually, otherwise every master is restarted and re-bundled when CJOC is restarted 😱.
@@ -333,6 +335,12 @@ If you've run a large Jenkins instance with a lot of disparate usage, you have e
   - namespace per master
   - namespace per master's agents
   - Ensure NetworkPolicy is adjusted here
+
+- [ ] Detect k8s flavor and adjust cloudbees-core install to use that Platform
+
+- [ ] Create a container with all the required tooling.
+
+  - [ ] Example of how to use a k8s Job to do the deployment?
 
 - [ ] Prometheus + Grafana
 
@@ -409,6 +417,10 @@ If you've run a large Jenkins instance with a lot of disparate usage, you have e
 
   - Process0 problem
   - Replicating the entire cluster into another environment (i.e. for testing purposes, DR)
+
+- [ ] Create some "weird" bundles
+
+  - A LOT of plugins. See if you can get 300-500 plugins installed this way
 
 - [ ] build logs -- need to ship these off-master
 
