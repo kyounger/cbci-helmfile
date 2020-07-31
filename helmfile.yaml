@@ -182,11 +182,6 @@ releases:
   - values/master-provisioner.yaml.gotmpl
   needs:
   - cloudbees/cbcore
-- name: master-definitions
-  namespace: cloudbees
-  chart: incubator/raw
-  values:
-  - values/master-definitions.yaml.gotmpl
 - name: prometheus
   namespace: prometheus
   chart: stable/prometheus
@@ -215,7 +210,6 @@ releases:
   - nginx-ingress/nginx-ingress
   - cert-manager/cert-manager
   - cloudbees/oc-extra-plugins
-  - cloudbees/master-definitions
   - ldap/ldap
 - name: cert-manager
   namespace: cert-manager

@@ -238,7 +238,7 @@ terminationGracePeriodSeconds: 1200, //Integer
 
 ### Known Issues
 
-* The master provisioning script is run when by a kubernetes job after CJOC starts. There is need to determine how to run this. Implemeting a simple controller would be appropriate based on changes to master-definitions configmap. Long-term, we hope that masters are defined by a CRD or another helm chart.
+* The master provisioning script is run by a kubernetes job after CJOC starts. There is need to determine how to run this. Implemeting a simple controller would be appropriate based on changes to master-definitions configmap. Long-term, we hope that masters are defined by a CRD or another helm chart.
 * CasC seems to require a definition of a plugin-catalog in the bundle. You can't leave the `plugin-catalog.yaml` file empty, though. Workaround for now is to make sure you are specifying a plugin catalog for all CascBundleTemplates, even if you aren' adding that plugin in the `plugins.yaml` file.
 * Inheritance works for `provisioning`, `plugins`, and any nodes within `jcasc` that are NOT lists. The merging function used considers a list the leaf of the merge tree and will replace it entirely.
 
@@ -293,6 +293,8 @@ If you've run a large Jenkins instance with a lot of disparate usage, you have e
 ### In general order of priority
 
 - [ ] overriding cpus seems to break
+
+- [x] combine master-definitions and master-provisioner charts
 
 - [ ] make master-provisioning-shim output more obvious when something changes
 

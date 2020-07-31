@@ -1,8 +1,0 @@
-resources:
-- apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    name: master-definitions
-  data:
-    masterDefinitions: |
-      {{- .Values.calculatedMasters | toYaml | nindent 6 }}
