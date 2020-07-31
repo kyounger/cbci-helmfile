@@ -58,8 +58,6 @@ private void createMM(String masterName, def masterDefinition) {
     createOrUpdateBundle(masterDefinition.bundle, masterName)
     setBundleSecurity(masterName, true)
 
-    //applyRbacAtMasterRoot(masterName)
-
     writeStateYaml(masterDefinition, masterName)
 
     //ok, now we can actually boot this thing up
@@ -106,8 +104,6 @@ private void updateMM(String masterName, def masterDefinition) {
         managedMaster.configuration = currentConfiguration
         managedMaster.save()
 
-        //applyRbacAtMasterRoot(masterName)
-
         writeStateYaml(masterDefinition, masterName)
 
         println "Restarting master '${masterName}'."
@@ -133,27 +129,6 @@ private void updateMM(String masterName, def masterDefinition) {
     } else {
         println "Master Definition for master '${masterName}' same as last run. NOT updating it."
     }
-}
-
-
-//TODO: here is where you should apply rbac to the master, if needed, since we are currently within the context of the CJOC.
-//      note that the reference arch this script intends that masters do not have admin access applied to them other
-//      than what is inherited from cluster admins. All master-specific RBAC should be a part of what is  autoconfigured on
-//      folders on the master
-//
-// this code works, just leave it commented until we're ready to use it
-private void applyRbacAtMasterRoot(String masterName) {
-//    def master = Jenkins.instance.getAllItems().find { it.name.equals(masterName) }
-//
-//    String internalGroupName = "j-GroupAlpha"
-//    String externalGroupName = "GroupAlpha"
-//    String roleName = "develop"
-//
-//    GroupContainer container = GroupContainerLocator.locate(master)
-//    Group group = new Group(container, internalGroupName)
-//    group.doAddMember(externalGroupName)
-//    group.doGrantRole(roleName, 0, Boolean.TRUE)
-//    container.addGroup(group)
 }
 
 private static void setBundleSecurity(String masterName, boolean regenerateBundleToken) {
