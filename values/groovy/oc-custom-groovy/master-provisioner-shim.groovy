@@ -187,6 +187,7 @@ private static String getMasterBundleDirPath(String masterName) {
 private static void createEntryInSecurityFile(String masterName) {
     //create entry in security file; only the first time we create a bundle and never again. Hopefully this goes
     //away in future versions of CB CasC
+    // !!NOTE!! The secret specified here is a stub. It is always regenerated to a proper, secure value. See setBundleSecurity()
     String newerEntry = """\n<entry>
       <string>${masterName}</string>
       <com.cloudbees.opscenter.server.casc.BundleStorage_-AccessControlEntry>
