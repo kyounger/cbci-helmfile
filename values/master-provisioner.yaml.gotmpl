@@ -2,46 +2,84 @@ resources:
 - apiVersion: v1
   kind: ConfigMap
   metadata:
-    name: master-definitions
-  data:
-    masterDefinitions: |
-      {{- .Values.calculatedMasters | toYaml | nindent 6 }}
-
-- apiVersion: v1
-  kind: ConfigMap
-  metadata:
     name: master-provisioner-shim
   data:
     master-provisioner-shim.groovy: |
       {{ readFile "groovy/oc-custom-groovy/master-provisioner-shim.groovy" | nindent 6 }}
 
-- apiVersion: batch/v1
-  kind: Job
+- apiVersion: v1
+  kind: ConfigMap
   metadata:
-    name: initial-install-master-creation
+    name: master-provisioner-operator-hook
+  data:
+    hook.sh: |
+      #!/usr/bin/env bash
+
+      if [[ $1 == "--config" ]] ; then
+        cat <<EOF
+      configVersion: v1
+      kubernetes:
+      - apiVersion: v1
+        kind: ConfigMap
+        executeHookOnEvent:
+        - Added
+        - Modified
+        namespace:
+          nameSelector:
+            matchNames: ["cloudbees"]
+        nameSelector:
+          matchNames:
+          - master-definitions
+      EOF
+      else
+        type=$(jq -r '.[0].type' $BINDING_CONTEXT_PATH)
+        if [[ $type == "Event" ]] ; then
+          cmname=$(jq -r '.[0].object.metadata.name' $BINDING_CONTEXT_PATH)
+          echo "CM '${cmname}' event"
+          curl --data-urlencode script@/scripts/master-provisioner-shim.groovy --user admin:$SECRET_TOKEN {{ .Values.ocUrl }}/scriptText
+        fi
+      fi
+
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: mm-script-operator
+    labels:
+      app: mm-script-operator
   spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: mm-script-operator
     template:
+      metadata:
+        labels:
+          app: mm-script-operator
       spec:
         containers:
-        - image: curlimages/curl
-          name: curl
+        - name: master-provisioner-script-controller
+          image: "kyounger/shell-operator-with-curl:latest"
+          imagePullPolicy: Always
           env:
           - name: SECRET_TOKEN
             valueFrom:
               secretKeyRef:
                 name: cbcore-admin-token-secret
                 key: token
-          command: ["sh"]
-          args: 
-          - -c
-          - curl --data-urlencode script@/scripts/master-provisioner-shim.groovy -v --user admin:$SECRET_TOKEN {{ .Values.ocUrl }}/scriptText
+          - name: LOG_TYPE
+            value: text
           volumeMounts:
+          - name: operator-hooks
+            mountPath: /hooks/
           - mountPath: /scripts
             name: scripts
+        serviceAccountName: cjoc
         volumes:
+        - name: operator-hooks
+          configMap:
+            name: master-provisioner-operator-hook
+            defaultMode: 0777
         - name: scripts
           configMap:
             name: master-provisioner-shim
             defaultMode: 420
-        restartPolicy: Never
-    backoffLimit: 1
