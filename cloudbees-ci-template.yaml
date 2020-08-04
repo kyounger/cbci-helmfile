@@ -12,55 +12,9 @@ license:
     xyz
     -----END CERTIFICATE-----
 ---
-#optional (below are the defaults)
-https:
-  enabled: false
-cjoc:
-  version:
-  initialCapPlugins:
-  - antisamy-markup-formatter
-  - blueocean-rest
-  - bluesteel-cjoc
-  - cloudbees-jenkins-advisor
-  - cloudbees-ssh-slaves
-  - ldap
-  - matrix-project
-  - operations-center-jnlp-controller
-  - operations-center-rbac
-  - pubsub-light
-  - sse-gateway
-  - suppress-stack-trace
-  initialExtraPlugins:
-  - configuration-as-code
-teamTopology:
-  usersPerAppId: 3
-security:
-  # NOT IMPLEMENTED YET
-  # enable the pod security policy. Cannot run as root. If you need this, then use gvisor.
-  podSecurityPolicy:
-    enabled: true
-  # this allows running as "root" in a more secure way. Uses gvisor(runsc) as a userspace kernel.
-  gvisor:
-    enabled: true
-    nodeLabel: "gvisor"
-isolation:
-  # NOT IMPLEMENTED YET
-  # Enabled by default. This will put CJOC in its own namespace and any builds from CJOC in their own namespace.
-  # By default, each master will get its own namespace, and each master's builds will get their own namespace.
-  # These isolations can be reduced.
-  enabled: true
-  cjoc:
-    enabled: true
-  masters:
-    enabled: true
-    # defaults to EachMaster. Less isolated would be "AllMastersTogether".
-    level: EachMaster
-    builds:
-      enabled: true
-      # defaults to "EachMastersBuilds". Less isolated would be "AllMastersBuildsTogether".
-      level: EachMastersBuilds
-
-#examples of how to define master templates and masters
+# 1. see ./sane-defaults.yaml for other optional settings
+#
+# 2. examples of how to define master templates and master definitions
 masters:
   defaultMasterTemplate:
     provisioning:

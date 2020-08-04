@@ -1,7 +1,7 @@
 environments:
   default:
     values:
-    - internal-defaults.yaml
+    - sane-defaults.yaml
     - cloudbees-ci.yaml
     # calculated internal values:
       # todo: I think we can use nil in the merge
