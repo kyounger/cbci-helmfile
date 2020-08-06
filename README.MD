@@ -296,9 +296,11 @@ If you've run a large Jenkins instance with a lot of disparate usage, you have e
 
 - [x] combine master-definitions and master-provisioner charts
 
-- [ ] make master-provisioning-shim output more obvious when something changes
+- [ ] make master-provisioning-shim output more obvious when something changes?
 
-- [ ] Decide on _how_ to run master-provisioner-shim.groovy. This needs to be _triggered_ on an install (or restart of CJOC?), but shouldn't be solely tied to a CJOC restart. Until piecemeal updates works, run this manually, otherwise every master is restarted and re-bundled when CJOC is restarted 😱.
+  - Currently running via shell-operator with has it's own issues with logging. Not a priority at the moment.
+
+- [x] Decide on _how_ to run master-provisioner-shim.groovy. This needs to be _triggered_ on an install (or restart of CJOC?), but shouldn't be solely tied to a CJOC restart. Until piecemeal updates works, run this manually, otherwise every master is restarted and re-bundled when CJOC is restarted 😱.
 
   - [x] Run as init groovy script on cjoc -- this breaks so many thing.
 
@@ -306,7 +308,7 @@ If you've run a large Jenkins instance with a lot of disparate usage, you have e
 
   - Approaches:
 
-    - [ ] Deploy a simple controller to check when the `master-definition` config map changes and just ping OC with the shim
+    - [x] Deploy a simple controller to check when the `master-definition` config map changes and just ping OC with the shim
       - https://github.com/flant/shell-operator
       - https://medium.com/flant-com/kubernetes-shell-operator-76c596b42f23
       - https://github.com/flant/addon-operator
@@ -323,7 +325,7 @@ If you've run a large Jenkins instance with a lot of disparate usage, you have e
 - [ ] AppID fully implemented
 
   - [x] Creating the users/groups in ldap based on appIds
-  - [ ] Switch to using job-dsl folder creation entirely and only have the groovy script apply RBAC groups?
+  - [x] Switch to using job-dsl folder creation entirely and only have the groovy script apply RBAC groups?
   - [ ] Update Github tf module
     - [ ] add repo `Jenkinsfile`s
   - [x] Add job-dsl `-script` "append"
