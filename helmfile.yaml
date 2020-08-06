@@ -19,7 +19,9 @@ environments:
         {{ $url := nospace (cat "https://jenkins-updates.cloudbees.com/update-center/envelope-core-mm/update-center.json?version=" $cbcoreAppVersion) }}
         {{ $uc := exec "sh" (list "-c" (cat "wget -q -O - " $url " | sed '1d' | sed '$d' | jq -r | yq r - -P")) | fromYaml }}
 
-        # not entirely sure why our UC json has issues being converted into yaml/golang strings. This sorts it out, though.
+        # Not entirely sure why our UC json has issues being converted into yaml/golang strings. 
+        # The next two sections sorts that out, though, by just looping through the data and 
+        # redefining the dicts. Very odd.
         {{ $ucEnvelopePlugins := dict }}
         {{ range $k, $v := $uc.envelope.plugins }}
         {{ if eq (typeOf $k) "string" }}
