@@ -152,10 +152,9 @@ private static void createOrUpdateBundle(def bundleDefinition, String masterName
 
     int bundleVersion = getExistingBundleVersion(bundleYamlHandle) + 1
 
-    if (masterBundleDirHandle.exists()) {
-        FileUtils.forceDelete(masterBundleDirHandle)
+    if (!masterBundleDirHandle.exists()) {
+        FileUtils.forceMkdir(masterBundleDirHandle)
     }
-    FileUtils.forceMkdir(masterBundleDirHandle)
 
     def yamlMapper = Serialization.yamlMapper()
     def jcascYaml = yamlMapper.writeValueAsString(bundleDefinition.jcasc)?.replace("---", "")?.trim()
