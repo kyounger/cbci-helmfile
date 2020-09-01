@@ -155,6 +155,8 @@ environments:
           {{ $masters | toYaml | nindent 10 }}
     - appIds: {{ $globalAppIds | uniq | toJson }}
 repositories:
+- name: prometheus-community
+  url: https://prometheus-community.github.io/helm-charts
 - name: stable
   url: https://charts.helm.sh/stable
 - name: incubator
@@ -214,19 +216,12 @@ releases:
   needs:
   - cloudbees/master-provisioner
 
-- name: prometheus
-  namespace: prometheus
-  chart: stable/prometheus
-  version: 11.6.2
+- name: prometheus-operator
+  namespace: prometheus-operator
+  chart: prometheus-community/kube-prometheus-stack
+  version: 13.7.2
   values:
-  - values/prometheus.yaml.gotmpl
-
-- name: grafana
-  namespace: grafana
-  chart: stable/grafana
-  version: 5.3.5
-  values:
-  - values/grafana.yaml.gotmpl
+  - values/prometheus-operator.yaml.gotmpl
 
 - name: nginx-ingress
   namespace: nginx-ingress

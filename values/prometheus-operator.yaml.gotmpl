@@ -1,0 +1,20 @@
+grafana:
+  ingress:
+    enabled: true
+    hosts: 
+    - {{ .Values.domain }}
+    path: "/grafana"
+  adminPassword: {{ .Values.ldapGlobalPassword }}
+  grafana.ini:
+    server:
+      domain: {{ .Values.domain }}
+      root_url: "http://{{ .Values.domain }}/grafana"
+      serve_from_sub_path: true
+#prometheus:
+#  ingress:
+#    enabled: true
+#    hosts: 
+#    - {{ .Values.domain }}
+#    path: "/monitor"
+#prometheusSpec:
+#  routePrefix: "monitor"

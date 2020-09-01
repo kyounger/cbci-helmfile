@@ -52,14 +52,6 @@ masters:
               name: mm-custom-groovy
           - name: backup-tmp
             emptyDir: {}
-    ---
-    kind: Service
-    metadata:
-      annotations:
-        prometheus.io/scheme: 'http'
-        prometheus.io/path: '/{{ .masterName }}/prometheus'
-        prometheus.io/port: '8080'
-        prometheus.io/scrape: 'true'
 appIdConfig:
   template: |
     folder('app-{{ .appId }}') {
