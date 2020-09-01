@@ -33,7 +33,7 @@ customLdifFiles:
 {{ $userSuffix := printf "%02d" (add $suffixNum 1) }}
 {{ $userName := nospace (cat $groupName $userSuffix) }}
     dn: uid={{ $userName }}, ou=People, dc=example,dc=org
-    cn: User {{ $userSuffix }}
+    cn: User {{ $userName }}
     sn: {{ $userName }}
     givenname: {{ $userName }}
     objectclass: top
