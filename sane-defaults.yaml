@@ -38,7 +38,6 @@ masters:
             configMap:
               defaultMode: 420
               name: mm-custom-groovy
-              apiVersion: "apps/v1"
     ---
     kind: Service
     metadata:
