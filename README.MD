@@ -17,7 +17,7 @@ First thing to note: this is for "CloudBees CI Modern", the Kubernetes-based var
 - A single file to declare an entire installation.
 - Updating this single file is the mechanism to affect the state of the cluster.
 - A recognition that CloudBees CI is never the only piece of software installed into a single cluster.
-- No restarts of CJOC or a master to ensure an install is "complete". Only exception here is when an already-running master's config changes and just requires a single restart.
+- No restarts of CJOC or a master to ensure an install is "complete". Only exception here is when Jenkins just naturally requires a restart (e.g. after a plugin installation).
 - No manual interventions during install/upgrade.
 - No deriving new docker images.
 - No forks of an upstream helm chart.
