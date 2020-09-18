@@ -77,7 +77,6 @@ appIdConfig:
         cron('@daily')
       }
     }
-cascBundleTemplates:
 ldap:
   roles:
     - Dev
