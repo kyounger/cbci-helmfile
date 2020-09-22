@@ -6,7 +6,7 @@ OperationsCenter:
     Requests:
       Memory: 3G
       Cpu: 4
-  Platform: gke
+  Platform: {{ .Values.platform }}
   HostName: {{ .Values.domain }} 
   Ingress:
     Annotations:
