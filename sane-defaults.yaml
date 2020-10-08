@@ -33,11 +33,15 @@ masters:
             volumeMounts:
             - name: mm-custom-groovy
               mountPath: /var/jenkins_config/configure-jenkins.groovy.d/
+            - name: backup-tmp
+              mountPath: /var/jenkins_backups/
           volumes:
           - name: mm-custom-groovy
             configMap:
               defaultMode: 420
               name: mm-custom-groovy
+          - name: backup-tmp
+            emptyDir: {}
     ---
     kind: Service
     metadata:
