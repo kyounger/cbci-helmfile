@@ -1,6 +1,6 @@
 https:
   enabled: false
-cloudbeesCoreChartVersion: 3.16.1
+cloudbeesCoreChartVersion: 3.22.0
 cjoc:
   initialCapPlugins:
   - antisamy-markup-formatter
