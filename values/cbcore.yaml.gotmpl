@@ -93,12 +93,8 @@ OperationsCenter:
           unclassified:
             experimentalPlugins:
               enabled: false
-            kubernetesMasterProvisioning:
-              clusterEndpoints:
-              - id: "default"
-                ingressClass: "nginx"
-                jenkinsUrl: "http://cjoc.cloudbees.svc.cluster.local/cjoc"
-                name: "kubernetes"
+          masterprovisioning:
+            kubernetes:
               disk: 5
               memory: 4096
             location:
