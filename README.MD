@@ -1,6 +1,6 @@
 # CloudBees CI, Entirely As Code — An Opinionated Approach
 
-Many of us in the Customer Success organization at CloudBees have worked closely with customers to provide guidance on designing, implementing, and operating their installation of CloudBees CI (CBCI, formerly known as CloudBees Core). While no two customers are alike, there are some approaches that seem to work better than others. This Opinionated Approach is based on several goals and guiding principles. If those are acceptable, this should help automate the operation.
+Many of us in the Services organization at CloudBees have worked closely with customers to provide guidance on designing, implementing, and operating their installation of CloudBees CI (CBCI, formerly known as CloudBees Core). While no two customers are alike, there are some approaches that seem to work better than others. This Opinionated Approach is based on several goals and guiding principles. If those are acceptable, this should help automate the operation.
 
 This is part specification, and part documentation (and justification) of a reference implementation. If the goal is "everything as code" as the title claims, we also better provide some code!
 
@@ -12,6 +12,14 @@ And fill some gaps.
 
 First thing to note: this is for "CloudBees CI Modern", the Kubernetes-based variant, and not "CloudBees CI Traditional". Kubernetes makes much of this possible, as it helps abstract many of the infrastructure concerns (though, they are concerns, indeed). Most of these opinions and approaches could be reworked into a Traditional install — but providing a reference implementation for it is less attractive, as the diversity in the underlying infrastructure, configuration management and other disparate tooling, and operation of it all, is much, much greater. This is part of the appeal of Kubernetes.
 
+### Abbreviations
+
+CJOC, OC = Operations Center
+MM = Managed Master
+TM = Team Master
+JCasC = OSS Jenkins `configuration-as-code` plugin/solution.
+CasC = CloudBees CasC for Masters (CloudBees-specific solution built on top of JCasC)
+
 ## Goals, Guiding Principles, Decision-making
 
 - A single file to declare an entire installation.
@@ -21,13 +29,80 @@ First thing to note: this is for "CloudBees CI Modern", the Kubernetes-based var
 - No manual interventions during install/upgrade.
 - No deriving new docker images.
 - No forks of an upstream helm chart.
-- Uses only Jenkins/CloudBees CI/Kubernetes/helm primitives and templating via Go Templates in helm and helmfile. We agument and fill gaps where we have to (pre-pulling extra plugins on CJOC, JCasC on CJOC, Groovy scripts where JCasC doesn't work, etc.)Wh
+- Uses only Jenkins/CloudBees CI/Kubernetes/helm primitives and templating via Go Templates in helm and helmfile. We agument and fill gaps where we have to (pre-pulling extra plugins on CJOC, JCasC on CJOC, Groovy scripts where JCasC doesn't work, etc.)
 - Favor self-configuration. As an example, we show preference to mount a groovy script to a master so it boots up and configures RBAC itself, versus booting the master and subsequently calling its REST API.
+- No admin access to OC or Masters for anyone outside the team that operations this installation. All RBAC is programmatically configured and all access is assigned from the level of a folder inside a master.
 - No one should ever need to go into the CJOC UI (and possibly never a Master's UI).
 - Self-servicing a master should be simple and secure.
 - Make decisions that maintain the supportability of the product, while enabling functionality that might not be present out of the box.
 - Scaling, and testing CloudBees CI at scale, is a first-class concern.
 - Begin treating masters like cattle.
+
+## Gaps
+
+What are the gaps we're filling? How difficult would it be to reproduce these unsupported automations manually given the need for support? 
+
+Note that many of these are easy to reproduce individually. Taken together, it might require an engineer a good amount of time to effectively rebuild an environment manually. Pehaps that illustrates the benefits, though.
+
+### Operations Center Programmatic Install
+
+Currently you cannot install CloudBees CI without human interaction. There are serveral components that require custom automation:
+
+#### Skip Wizard
+
+First things first, we skip the installation wizard with a cli flag (`-Djenkins.install.runSetupWizard=false`), as it is a manual interface.
+
+#### License
+
+We apply a license with a groovy init script. There are other approaches to this, but in this case the groovy script is super simple. While groovy is not supported, this relatively innocuous script is probably of little harm.
+
+#### Tier1/Tier2 plugin installation
+
+We use a special flag (`-Dcb.IMProp.fsProfiles`) and mount a specific file to tell the OperationsCenter to install a certain set of plugins from the envelope when booted.
+
+#### Tier3 plugin installation
+
+Because the OC allows you to install tier 3 plugins from its Update Center after boot, having these installed programmatically (again, without restart) is required. We achieve this by detecting the version of Operations Center ahead of time (via the helm chart app version), and using that version, download the plugin directly from that UC and mount it in a PV that will be mounted to the container. This process is contained in the `oc-extra-plugins` chart.
+
+#### Jenkins Configuration
+
+If you want to automate the setup of various System Configuration of the underlying Jenkins (and its plugins) for the Operations Center, you have two options: 1) Groovy scripts, or 2) JCasC. Both are unsupported.
+
+The general direction of the product is moving toward JCasC support in the OC. While it's not yet supported, [it is intended to be](https://www.cloudbees.com/blog/casc-for-controllers). Therefore my decision here was to pick using JCasC where it works now (e.g. Auth Realm setup), and using Groovy scripts where it isn't (e.g. enabling RBAC and initial configuration thereof). Hopefully this parlays easily into JCasC support when it lands with fewer changes needed.
+
+### Managed Master Provisioning
+
+Typically we provision each individual MM via the Operations Center Managed Master Provisioning UI. This requires a human to click buttons and type in each specific input the desired configuration of a master, then boot it.
+
+#### Programmatic Creation/Update of Managed Masters
+
+We solve this by implementing a "shim" (a groovy script) that interfaces with the underlying Operation Center master provisioning plugin. It attempts to reproduce the same method calls the UI does to create+start/update+restart a MM.
+
+The goal is to define a master as code, then define _ALL_ masters as code, then use that definition of state to allow some other process to ensure that state is reconciled in the runtime. If this sounds familiar to you, you might understand the Operator/Controller pattern in Kubernetes. This is precisely the direction taken here. In the interests of saving time and effort as a PoC, I have used a very simple operator framework to trigger the shim script when the configuration of the masters changes:
+
+https://github.com/flant/shell-operator
+
+https://github.com/kyounger/shell-operator-derivatives
+
+### CasC Automation (Master Templating)
+
+The new *CloudBees CasC for Masters* feature is what ultimately enables this approach. The CasC bundle needs to be defined on the OC before the MM is instantiated. Additionally, for Tier 3 plugins, you are required to manage which versions from the UpdateCenter are going to be installed, as well as any transitive dependencies for that plugin and their versions.
+
+Handling these setups proves the need for this automation; it's easily fat-fingered. 
+
+TODO: elaborate more about how the templates work.
+
+Tier 3 plugins require a different approach. The entire MM Update Center at the current version is downloaded. This allows us to then use that payload as an envrionmental values datasource in helmfile, which allows us to determine the version to specify in `plugin-catalog.yaml` programmatically. This is literally the same thing that Jenkins does when you click through the UI to install a plugin. Sadly, solving the transitive dependencies problem is not yet part of this solution.
+
+#### Folder/Item Definitions
+
+Any item in a MM will need to be defined as code. Currently we use job-dsl to create folder structure and GH org folders.
+
+Another item to note is that "AppIDs" equate to a specific application identifier. This seems to be common in large, well-controlled organizations. We define that as a first class citizen of a solution. If you define an AppID to reside on a master, then it will get a folder created and associated RBAC applied and a Github Org folder inserted into it, linked back to the expected location for that AppID's repos to be defined.
+
+#### Automated RBAC applied to Folders
+
+Currently we use a groovy script to apply RBAC to folders that are expected to be there.
 
 ## What exactly is "as code"?
 
@@ -263,7 +338,7 @@ A common paradigm used by many organizations is to control applications/componen
 
 #### Security
 
-Depending on your level of trust and threat modeling, you may be comfortable running fewer masters. Part of the consideration here is that CloudBees CI Modern runs on Kubernetes and securing workloads in Kubernetes requires us to implement certain design patterns. For example, we put CJOC, each master, and each master's agents in their own respective Namespaces and give them their own Service Accounts. This might seem like overkill to some (and for some it might be), but to ensure masters (and their agents) are isolated from each other, this is required. Additionally, a master's agents typically have a lower trust threshold and therefore are run in their own namespace with their own Service Account.
+Depending on your level of trust and threat modeling, you may be comfortable running fewer masters. Part of the consideration here is that CloudBees CI Modern runs on Kubernetes and securing workloads in Kubernetes requires us to implement certain design patterns. For example, we put CJOC, each master, and each master's agents in their own respective Namespaces and give them their own Service Accounts (note, this is still TODO). This might seem like overkill to some (and for some it might be), but to ensure masters (and their agents) are isolated from each other, this is required. Additionally, a master's agents typically have a lower trust threshold and therefore are run in their own namespace with their own Service Account.
 
 #### Resource Contstraints
 
