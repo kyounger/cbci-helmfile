@@ -90,13 +90,13 @@ OperationsCenter:
                 disableMailAddressResolver: false
                 groupIdStrategy: "caseInsensitive"
                 userIdStrategy: "caseInsensitive"
-          unclassified:
-            experimentalPlugins:
-              enabled: false
           masterprovisioning:
             kubernetes:
               disk: 5
               memory: 4096
+          unclassified:
+            experimentalPlugins:
+              enabled: false
             location:
               adminAddress: "{{ .Values.adminEmail }}"
     - name: mm-custom-groovy
