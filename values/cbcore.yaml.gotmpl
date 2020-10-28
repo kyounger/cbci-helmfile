@@ -24,6 +24,7 @@ OperationsCenter:
   JavaOpts:
     -Djenkins.install.runSetupWizard=false
     -Dcb.IMProp.fsProfiles=/usr/share/jenkins/fsProfile/custom-profile.json
+    -Dcom.cloudbees.opscenter.clouds.kubernetes.KubernetesConfiguration.autoconfigure=false
   ContainerEnv:
     - name: ldap_manager_pw
       value: {{ .Values.ldapGlobalPassword }}

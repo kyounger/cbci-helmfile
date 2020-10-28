@@ -19,6 +19,16 @@ cjoc:
   - configuration-as-code
 masters:
   defaultMasterTemplate:
+    jcasc:
+      jenkins:
+        clouds:
+        - kubernetes:
+            containerCap: 10
+            containerCapStr: "10"
+            maxRequestsPerHost: 32
+            maxRequestsPerHostStr: "32"
+            name: "kubernetes"
+            namespace: "cloudbees-builds"
   masterTemplates:
   masterDefinitions:
     specificMasters:
