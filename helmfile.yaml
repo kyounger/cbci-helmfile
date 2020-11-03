@@ -57,8 +57,16 @@ environments:
           {{ end }}
           {{ end }}
 
+          # restructure the dictionary of specificMasters into a list we can append to
+          {{ $listOfSpecificMasters := list }}
+          {{ $specificMasters := get "specificMasters" $masterDefinitions }}
+          {{ range $smName, $smDefinition := $specificMasters }}
+            {{ $smDefinition = set $smDefinition "name" $smName }}
+            {{ $listOfSpecificMasters = append $listOfSpecificMasters $smDefinition }}
+          {{ end }}
+
           # append manyMasters to specific masters and calculate them all
-          {{ $allMasters := concat (get "specificMasters" $masterDefinitions) $manyMasters }}
+          {{ $allMasters := concat $listOfSpecificMasters $manyMasters }}
           {{ range $definition := $allMasters }}
 
             {{ $masterName := $definition.name }}

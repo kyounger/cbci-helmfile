@@ -81,46 +81,46 @@ masters:
 
   masterDefinitions:
     specificMasters:
-    - name: master0
-      masterTemplate: default
-    - name: master1
-      masterTemplate: basic-a
-      appIds:
-        - "AB"
-        - "AC"
-    - name: master2
-      masterTemplate: basic-a
-      appIds:
-        - "AF"
-    - name: master3
-      masterTemplate: basic-a
-      appIds:
-        - "AD"
-        - "AE"
-    - name: master3-dev
-      masterTemplate: basic-b
-      appIds:
-        - "AD"
-        - "AE"
-    - name: master4
-      masterTemplate: basic-a
-      provisioning:
-        disk: 10
-      jcasc:
-        jenkins:
-          systemMessage: "overridden for specific master4"
-        jobs:
-        - script: | 
-            folder('project-4') {
-                displayName('Project 4')
-                description('Folder for project 4')
-            }
-      plugins:
-        chucknorris: {version: auto}
-        ec2: {version: auto}
-      appIds:
-        - "AG"
-        - "AH"
+      master0:
+        masterTemplate: default
+      master1:
+        masterTemplate: basic-a
+        appIds:
+          - "AB"
+          - "AC"
+      master2:
+        masterTemplate: basic-a
+        appIds:
+          - "AF"
+      master3:
+        masterTemplate: basic-a
+        appIds:
+          - "AD"
+          - "AE"
+      master3-dev:
+        masterTemplate: basic-b
+        appIds:
+          - "AD"
+          - "AE"
+      master4:
+        masterTemplate: basic-a
+        provisioning:
+          disk: 10
+        jcasc:
+          jenkins:
+            systemMessage: "overridden for specific master4"
+          jobs:
+          - script: | 
+              folder('project-4') {
+                  displayName('Project 4')
+                  description('Folder for project 4')
+              }
+        plugins:
+          chucknorris: {version: auto}
+          ec2: {version: auto}
+        appIds:
+          - "AG"
+          - "AH"
     manyMasters:
     # - prefix: red
     #   masterTemplate: default
