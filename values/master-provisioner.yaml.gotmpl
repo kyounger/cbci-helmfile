@@ -30,12 +30,24 @@ resources:
         nameSelector:
           matchNames:
           - master-definitions
+      - apiVersion: v1
+        kind: Secret
+        executeHookOnEvent:
+        - Added
+        - Modified
+        namespace:
+          nameSelector:
+            matchNames: ["cloudbees"]
+        nameSelector:
+          matchNames:
+          - cbcore-admin-token-secret
       EOF
       else
         type=$(jq -r '.[0].type' $BINDING_CONTEXT_PATH)
         if [[ $type == "Event" ]] ; then
           cmname=$(jq -r '.[0].object.metadata.name' $BINDING_CONTEXT_PATH)
-          echo "CM '${cmname}' event"
+          echo "'${cmname}' event"
+          SECRET_TOKEN=$(cat /tokens/token)
           curl --data-urlencode script@/scripts/master-provisioner-shim.groovy --user admin:$SECRET_TOKEN {{ .Values.ocUrl }}/scriptText
         fi
       fi
@@ -61,18 +73,15 @@ resources:
           image: "kyounger/shell-operator-with-curl:latest"
           imagePullPolicy: Always
           env:
-          - name: SECRET_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: cbcore-admin-token-secret
-                key: token
           - name: LOG_TYPE
             value: json
           volumeMounts:
           - name: operator-hooks
             mountPath: /hooks/
-          - mountPath: /scripts
-            name: scripts
+          - name: scripts
+            mountPath: /scripts/
+          - name: token
+            mountPath: /tokens/
         serviceAccountName: cjoc
         volumes:
         - name: operator-hooks
@@ -83,6 +92,9 @@ resources:
           configMap:
             name: master-provisioner-shim
             defaultMode: 420
+        - name: token
+          secret: 
+            secretName: cbcore-admin-token-secret
 # next two resources just add to the cjoc SA permissions to read configmaps, as the base RBAC that comes with cbci does not allow this.
 - apiVersion: rbac.authorization.k8s.io/v1
   kind: Role
