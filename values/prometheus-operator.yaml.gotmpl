@@ -10,7 +10,24 @@ grafana:
       domain: {{ .Values.domain }}
       root_url: "http://{{ .Values.domain }}/grafana"
       serve_from_sub_path: true
-#prometheus:
+prometheus:
+  additionalServiceMonitors:
+  - name: cloudbees-masters
+    endpoints:
+    - interval: 10s 
+      port: http
+      path: "this will be relabeled"
+      relabelings:
+      - sourceLabels: [__meta_kubernetes_service_label_com_cloudbees_cje_tenant]
+        regex: (.*)
+        replacement: /${1}/prometheus
+        targetLabel: __metrics_path__
+    selector:
+      matchLabels:
+        com.cloudbees.cje.type: master
+    namespaceSelector:
+      matchNames:
+      - cloudbees
 #  ingress:
 #    enabled: true
 #    hosts: 
