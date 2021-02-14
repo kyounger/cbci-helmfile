@@ -222,6 +222,8 @@ releases:
   namespace: prometheus-operator
   chart: prometheus-community/kube-prometheus-stack
   version: 13.7.2
+  needs:
+  - ingress-nginx/ingress-nginx
   values:
   - values/prometheus-operator.yaml.gotmpl
 
