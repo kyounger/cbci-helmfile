@@ -13,7 +13,7 @@ environments:
       {{ range $dep := $cbcoreChartYaml.dependencies }}
         {{ $cbcoreChartDeps = set $cbcoreChartDeps $dep.name (dict "version" $dep.version) }}
       {{ end }}
-      {{ $bundledNginxIngressVersion := (get "nginx-ingress" $cbcoreChartDeps).version }}
+      {{ $bundledNginxIngressVersion := (get "ingress-nginx" $cbcoreChartDeps).version }}
     - cloudbeesCoreAppVersion: {{ $cbcoreAppVersion }}
 
         {{ $url := nospace (cat "https://jenkins-updates.cloudbees.com/update-center/envelope-core-mm/update-center.json?version=" $cbcoreAppVersion) }}
@@ -157,8 +157,8 @@ environments:
 repositories:
 - name: prometheus-community
   url: https://prometheus-community.github.io/helm-charts
-- name: stable
-  url: https://charts.helm.sh/stable
+- name: ingress-nginx 
+  url: https://kubernetes.github.io/ingress-nginx
 - name: incubator
   url: https://charts.helm.sh/incubator
 - name: cloudbees
@@ -191,7 +191,7 @@ releases:
   values:
   - values/cbcore.yaml.gotmpl
   needs:
-  - nginx-ingress/nginx-ingress
+  - ingress-nginx/ingress-nginx
   - cert-manager/cert-manager
   - cloudbees/oc-extra-plugins
   - ldap/ldap
@@ -225,12 +225,12 @@ releases:
   values:
   - values/prometheus-operator.yaml.gotmpl
 
-- name: nginx-ingress
-  namespace: nginx-ingress
-  chart: stable/nginx-ingress
+- name: ingress-nginx
+  namespace: ingress-nginx
+  chart: ingress-nginx/ingress-nginx
   version: {{ $bundledNginxIngressVersion }}
   values:
-  - values/nginx-ingress.yaml.gotmpl
+  - values/ingress-nginx.yaml.gotmpl
 
 - name: cert-manager
   namespace: cert-manager
@@ -240,7 +240,7 @@ releases:
   values:
   - values/cert-manager.yaml.gotmpl
   needs:
-  - nginx-ingress/nginx-ingress
+  - ingress-nginx/ingress-nginx
 
 - name: ldap
   namespace: ldap
