@@ -169,6 +169,8 @@ repositories:
   url: https://cetic.github.io/helm-charts
 - name: tanzu 
   url: https://vmware-tanzu.github.io/helm-charts
+- name: geek-cookbook
+  url: https://geek-cookbook.github.io/charts/
 helmDefaults:
   # wait for k8s resources via --wait. (default false)
   wait: true
@@ -234,7 +236,7 @@ releases:
   namespace: cert-manager
   condition: https.enabled
   chart: jetstack/cert-manager
-  version: v0.15.1
+  version: v1.2.0
   values:
   - values/cert-manager.yaml.gotmpl
   needs:
@@ -242,8 +244,8 @@ releases:
 
 - name: ldap
   namespace: ldap
-  chart: stable/openldap
-  version: 1.2.4
+  chart: geek-cookbook/openldap
+  version: 1.2.9
   values:
   - values/ldap.yaml.gotmpl
 
