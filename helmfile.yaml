@@ -167,8 +167,6 @@ repositories:
   url: https://charts.jetstack.io
 - name: cetic
   url: https://cetic.github.io/helm-charts
-- name: tanzu 
-  url: https://vmware-tanzu.github.io/helm-charts
 - name: geek-cookbook
   url: https://geek-cookbook.github.io/charts/
 helmDefaults:
