@@ -22,15 +22,18 @@ environments:
         # Not entirely sure why our UC json has issues being converted into yaml/golang strings. 
         # The next two sections sorts that out, though, by just looping through the data and 
         # redefining the dicts. Very odd.
+        {{ $rawUcEnvelopePlugins := $uc.envelope.plugins }}
+        {{ $rawUcPlugins := $uc.plugins }}
+
         {{ $ucEnvelopePlugins := dict }}
-        {{ range $k, $v := $uc.envelope.plugins }}
+        {{ range $k, $v := $rawUcEnvelopePlugins }}
         {{ if eq (typeOf $k) "string" }}
           {{ $ucEnvelopePlugins = set $ucEnvelopePlugins $k $v }}
         {{ end }}
         {{ end }}
 
         {{ $ucPlugins := dict }}
-        {{ range $k, $v := $uc.plugins }}
+        {{ range $k, $v := $rawUcPlugins }}
         {{ if eq (typeOf $k) "string" }}
           {{ $ucPlugins = set $ucPlugins $k $v }}
         {{ end }}
