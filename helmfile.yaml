@@ -49,6 +49,8 @@ environments:
           {{ $masterDefinitions := .Values.masters.masterDefinitions }}
           {{ $masterProvisioningYamlPatchTpl := .Values.masters.yamlPatchTemplate }}
           {{ $ghOrgScriptTpl := .Values.appIdConfig.template }}
+          {{ $oneSpecificMasterOnly := .Values | get "oneSpecificMasterOnly" "" }}
+
 
           # transform the manyMasters into named specific masters
           {{ $manyMasters := list }}
@@ -64,8 +66,10 @@ environments:
           {{ $listOfSpecificMasters := list }}
           {{ $specificMasters := get "specificMasters" $masterDefinitions }}
           {{ range $smName, $smDefinition := $specificMasters }}
-            {{ $smDefinition = set $smDefinition "name" $smName }}
-            {{ $listOfSpecificMasters = append $listOfSpecificMasters $smDefinition }}
+            {{ if (or (eq $oneSpecificMasterOnly "") (eq $smName $oneSpecificMasterOnly)) }}
+              {{ $smDefinition = set $smDefinition "name" $smName }}
+              {{ $listOfSpecificMasters = append $listOfSpecificMasters $smDefinition }}
+            {{ end }}
           {{ end }}
 
           # append manyMasters to specific masters and calculate them all
