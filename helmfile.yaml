@@ -49,6 +49,7 @@ environments:
           {{ $masterDefinitions := .Values.masters.masterDefinitions }}
           {{ $masterProvisioningYamlPatchTpl := .Values.masters.yamlPatchTemplate }}
           {{ $ghOrgScriptTpl := .Values.appIdConfig.template }}
+          {{ $splunkConfigTpl := .Values.splunkConfig.template }}
           {{ $oneSpecificMasterOnly := .Values | get "oneSpecificMasterOnly" "" }}
 
 
@@ -82,7 +83,7 @@ environments:
               {{ $masterTemplate = get $definition.masterTemplate $masterTemplates }}
             {{ end }}
 
-            # perform the merge (in the case of default master template, we double-merge, to no ill-effect
+            # perform the merge (in the case of default master template, we double-merge, to no ill-effect)
             {{ $mergedDefinition := mergeOverwrite (deepCopy $defaultMasterTemplate) $masterTemplate (omit $definition "masterTemplate" "name") }}
 
             # build appids safely as the node might not exist in definition
@@ -122,6 +123,15 @@ environments:
               {{ $jcascJobs = append $jcascJobs (dict "script" $ghOrgScript) }}
             {{ end }}
             {{ $jcasc = set $jcasc "jobs" $jcascJobs }}
+
+            # special case to inject master-specific splunkConfig
+            {{ $unclassified := dict }}
+            {{ if (hasKey $jcasc "unclassified") }}
+              {{ $unclassified = $jcasc.unclassified }}
+            {{ end }}
+            {{ $splunkConfig := (tpl ($splunkConfigTpl) (dict "metadataHost" $masterName "token" (env "SPLUNK_TOKEN") )) }}
+            {{ $mergedUnclassified := mergeOverwrite (deepCopy $unclassified) (fromYaml $splunkConfig) }}
+            {{ $jcasc = set $jcasc "unclassified" $mergedUnclassified }}
 
             # build the plugin list, keep track of tier3s for use in building pluginCatalog
             {{ $fullPluginList:= list }}

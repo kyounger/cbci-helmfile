@@ -52,6 +52,13 @@ masters:
               name: mm-custom-groovy
           - name: backup-tmp
             emptyDir: {}
+splunkConfig:
+  template: |
+    splunkJenkinsInstallation:
+      enabled: true
+      metadataHost: "{{ .metadataHost }}"
+      port: 8088
+      token: "{{ .token }}"
 appIdConfig:
   template: |
     folder('app-{{ .appId }}') {
