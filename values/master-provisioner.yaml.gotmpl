@@ -30,17 +30,6 @@ resources:
         nameSelector:
           matchNames:
           - master-definitions
-      - apiVersion: v1
-        kind: Secret
-        executeHookOnEvent:
-        - Added
-        - Modified
-        namespace:
-          nameSelector:
-            matchNames: ["cloudbees"]
-        nameSelector:
-          matchNames:
-          - cbcore-admin-token-secret
       EOF
       else
         type=$(jq -r '.[0].type' $BINDING_CONTEXT_PATH)
