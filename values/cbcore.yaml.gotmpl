@@ -107,7 +107,7 @@ OperationsCenter:
   ExtraVolumes:
   - name: extra-plugins
     persistentVolumeClaim:
-      claimName: plugins-dir-pvc
+      claimName: plugins-dir-pvc-{{ .Values.cloudbeesCoreAppVersion }}
   - name: apply-license
     configMap:
       name: apply-license

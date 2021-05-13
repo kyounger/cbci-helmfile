@@ -2,17 +2,17 @@ resources:
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
-      name: plugins-dir-pvc
+      name: plugins-dir-pvc-{{ .Values.cloudbeesCoreAppVersion }}
     spec:
       accessModes:
         - ReadWriteOnce
       resources:
         requests:
-          storage: 50Mi
+          storage: 1Gi
   - apiVersion: batch/v1
     kind: Job
     metadata:
-      name: populate-plugins
+      name: populate-plugins-{{ .Values.cloudbeesCoreAppVersion }}
     spec:
       template:
         spec:
