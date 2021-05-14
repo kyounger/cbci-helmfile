@@ -29,6 +29,6 @@ resources:
           volumes:
           - name: plugins
             persistentVolumeClaim:
-              claimName: plugins-dir-pvc
+              claimName: plugins-dir-pvc-{{ .Values.cloudbeesCoreAppVersion }}
           restartPolicy: Never
       backoffLimit: 4
