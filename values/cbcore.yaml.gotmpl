@@ -37,6 +37,8 @@ OperationsCenter:
       {{- readFile "groovy/oc-custom-groovy/enforce-master-checkboxes.groovy" | nindent 6 }}
     04-create-k8s-secret-with-jenkins-token.groovy: |
       {{- readFile "groovy/oc-custom-groovy/create-k8s-secret-with-jenkins-token.groovy" | nindent 6 }}
+    05-set-casc-bundle-visibility.groovy: |
+      {{- readFile "groovy/oc-custom-groovy/set-casc-bundle-visibility.groovy" | nindent 6 }}
   ExtraConfigMaps:
     - name: apply-license
       data:
