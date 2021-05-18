@@ -1,11 +1,10 @@
 //only runs on CJOC
 
 import com.cloudbees.masterprovisioning.kubernetes.KubernetesMasterProvisioning
-import com.cloudbees.opscenter.server.casc.BundleStorage
+import com.cloudbees.opscenter.server.casc.config.ConnectedMasterCascProperty
 import com.cloudbees.opscenter.server.model.ManagedMaster
 import com.cloudbees.opscenter.server.model.OperationsCenter
 import com.cloudbees.opscenter.server.properties.ConnectedMasterLicenseServerProperty
-import hudson.ExtensionList
 import io.fabric8.kubernetes.client.utils.Serialization
 import io.jenkins.cli.shaded.org.apache.commons.lang.StringUtils
 import jenkins.model.Jenkins
@@ -40,8 +39,12 @@ void main() {
 
 main()
 
+// -- function definitions below here
+
 private void createMM(String masterName, def masterDefinition) {
     println "Master '${masterName}' does not exist yet. Creating it now."
+
+    createOrUpdateBundle(masterDefinition.bundle, masterName)
 
     def configuration = new KubernetesMasterProvisioning()
     masterDefinition.provisioning.each { k, v ->
@@ -51,12 +54,9 @@ private void createMM(String masterName, def masterDefinition) {
     ManagedMaster master = Jenkins.instance.createProject(ManagedMaster.class, masterName)
     master.setConfiguration(configuration)
     master.properties.replace(new ConnectedMasterLicenseServerProperty(null))
+    master.properties.replace(new ConnectedMasterCascProperty(masterName))
     master.save()
     master.onModified()
-
-    createEntryInSecurityFile(masterName)
-    createOrUpdateBundle(masterDefinition.bundle, masterName)
-    setBundleSecurity(masterName, true)
 
     writeStateYaml(masterDefinition, masterName)
 
@@ -99,7 +99,6 @@ private void updateMM(String masterName, def masterDefinition) {
     if (masterDefinitionIsChanged) {
         println "MasterDefinition for master '${masterName}' has changed. Updating it..."
         createOrUpdateBundle(masterDefinition.bundle, masterName)
-        setBundleSecurity(masterName, false)
 
         managedMaster.configuration = currentConfiguration
         managedMaster.save()
@@ -128,16 +127,6 @@ private void updateMM(String masterName, def masterDefinition) {
         }
     } else {
         println "Master Definition for master '${masterName}' same as last run. NOT updating it."
-    }
-}
-
-private static void setBundleSecurity(String masterName, boolean regenerateBundleToken) {
-    sleep(100)
-    ExtensionList.lookupSingleton(BundleStorage.class).initialize()
-    BundleStorage.AccessControl accessControl = ExtensionList.lookupSingleton(BundleStorage.class).getAccessControl()
-    accessControl.updateMasterPath(masterName, masterName)
-    if (regenerateBundleToken) {
-        accessControl.regenerate(masterName)
     }
 }
 
@@ -181,30 +170,6 @@ private static void createOrUpdateBundle(def bundleDefinition, String masterName
 
 private static String getMasterBundleDirPath(String masterName) {
     return "/var/jenkins_home/jcasc-bundles-store/${masterName}"
-}
-
-private static void createEntryInSecurityFile(String masterName) {
-    //create entry in security file; only the first time we create a bundle and never again. Hopefully this goes
-    //away in future versions of CB CasC
-    // !!NOTE!! The secret specified here is a stub. It is always regenerated to a proper, secure value. See setBundleSecurity()
-    String newerEntry = """\n<entry>
-      <string>${masterName}</string>
-      <com.cloudbees.opscenter.server.casc.BundleStorage_-AccessControlEntry>
-        <secret>{aGVyZWJlZHJhZ29ucwo=}</secret>
-        <masterPath>${masterName}</masterPath>
-      </com.cloudbees.opscenter.server.casc.BundleStorage_-AccessControlEntry>
-    </entry>\n"""
-
-    def cascSecFilePath = "/var/jenkins_home/core-casc-security.xml"
-    def cascSecFile = new File(cascSecFilePath)
-    String cascSecFileContents = cascSecFile.getText('UTF-8')
-
-    if (cascSecFileContents.contains("<entries/>")) {
-        cascSecFileContents = cascSecFileContents.replace("<entries/>", "<entries></entries>")
-    } else {
-        cascSecFileContents = cascSecFileContents.replace("<entries>", "<entries>${newerEntry}")
-    }
-    cascSecFile.write(cascSecFileContents)
 }
 
 private static String getBundleYamlContents(String masterName, int bundleVersion) {
