@@ -37,7 +37,7 @@ resources:
           cmname=$(jq -r '.[0].object.metadata.name' $BINDING_CONTEXT_PATH)
           echo "'${cmname}' event"
           SECRET_TOKEN=$(cat /tokens/token)
-          curl --data-urlencode script@/scripts/master-provisioner-shim.groovy --user admin:$SECRET_TOKEN {{ .Values.ocUrl }}/scriptText
+          curl --data-urlencode script@/scripts/master-provisioner-shim.groovy --user admin:$SECRET_TOKEN http://cjoc.cloudbees.svc.cluster.local/{{ .Values.cjocPath }}/scriptText
         fi
       fi
 
