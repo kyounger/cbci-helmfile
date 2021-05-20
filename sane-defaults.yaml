@@ -17,6 +17,7 @@ cjoc:
   - suppress-stack-trace
   initialExtraPlugins:
   - configuration-as-code
+  - caffeine-api
 masters:
   defaultMasterTemplate:
     jcasc:
