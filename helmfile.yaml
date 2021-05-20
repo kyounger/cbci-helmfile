@@ -6,7 +6,7 @@ environments:
     # calculated internal values:
       # todo: I think we can use nil in the merge
     - ldapGlobalPassword: {{ requiredEnv "ENV_ABSTRACTED_PW" }}
-    - ocUrl: {{ if .Values.https.enabled -}} https {{- else -}} http {{- end -}}://{{ .Values.domain }}/cjoc
+    - ocUrl: {{ if .Values.https.enabled -}} https {{- else -}} http {{- end -}}://{{ .Values.domain }}/{{ .Values.cjocPath }}
       {{ $cbcoreChartYaml :=  exec "helm" (list "show" "chart" "cloudbees/cloudbees-core" "--version" .Values.cloudbeesCoreChartVersion) | fromYaml }}
       {{ $cbcoreAppVersion := $cbcoreChartYaml.appVersion  }}
       {{ $cbcoreChartDeps := dict }}

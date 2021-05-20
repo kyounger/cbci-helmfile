@@ -8,6 +8,7 @@ OperationsCenter:
       Cpu: 4
   Platform: {{ .Values.platform }}
   HostName: {{ .Values.domain }} 
+  Name: {{ .Values.cjocPath }}
   Ingress:
     Annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
