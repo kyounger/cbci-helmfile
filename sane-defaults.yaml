@@ -1,6 +1,6 @@
 https:
   enabled: false
-cloudbeesCoreChartVersion: 3.31.5
+cloudbeesCoreChartVersion: 3.32.1
 cjoc:
   initialCapPlugins:
   - antisamy-markup-formatter
@@ -115,3 +115,7 @@ isolation:
       enabled: true
       # defaults to "EachMastersBuilds". Less isolated would be "AllMastersBuildsTogether".
       level: EachMastersBuilds
+prometheus-operator:
+  enabled: false
+ldap-admin:
+  enabled: false

@@ -224,6 +224,7 @@ releases:
   - cloudbees/master-provisioner
 
 - name: prometheus-operator
+  condition: prometheus-operator.enabled
   namespace: prometheus-operator
   chart: prometheus-community/kube-prometheus-stack
   version: 13.7.2
@@ -257,6 +258,7 @@ releases:
   - values/ldap.yaml.gotmpl
 
 - name: ldap-admin
+  condition: ldap-admin.enabled
   namespace: ldap
   chart: cetic/phpldapadmin
   version: 0.1.3
