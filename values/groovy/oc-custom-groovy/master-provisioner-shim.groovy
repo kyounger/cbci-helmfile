@@ -2,15 +2,16 @@
 
 import com.cloudbees.masterprovisioning.kubernetes.KubernetesMasterProvisioning
 import com.cloudbees.opscenter.server.casc.config.ConnectedMasterCascProperty
+import com.cloudbees.opscenter.server.casc.config.ConnectedMasterTokenProperty
 import com.cloudbees.opscenter.server.model.ManagedMaster
 import com.cloudbees.opscenter.server.model.OperationsCenter
 import com.cloudbees.opscenter.server.properties.ConnectedMasterLicenseServerProperty
+import io.fabric8.kubernetes.api.model.ConfigMap
+import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.fabric8.kubernetes.client.utils.Serialization
 import io.jenkins.cli.shaded.org.apache.commons.lang.StringUtils
 import jenkins.model.Jenkins
 import org.apache.commons.io.FileUtils
-import io.fabric8.kubernetes.api.model.ConfigMap
-import io.fabric8.kubernetes.client.DefaultKubernetesClient
 
 void main() {
     println("Master Provisioning Shim script -- started.\n")
@@ -53,7 +54,8 @@ private void createMM(String masterName, def masterDefinition) {
 
     ManagedMaster master = Jenkins.instance.createProject(ManagedMaster.class, masterName)
     master.setConfiguration(configuration)
-    master.properties.replace(new ConnectedMasterLicenseServerProperty(null))
+    master.properties.replace(new ConnectedMasterLicenseServerProperty(new ConnectedMasterLicenseServerProperty.DescriptorImpl().defaultStrategy()))
+    master.properties.replace(new ConnectedMasterTokenProperty(hudson.util.Secret.fromString(UUID.randomUUID().toString())))
     master.properties.replace(new ConnectedMasterCascProperty(masterName))
     master.save()
     master.onModified()
