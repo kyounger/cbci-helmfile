@@ -2,6 +2,7 @@ https:
   enabled: false
 cloudbeesCoreChartVersion: 3.32.1
 cjoc:
+  path: cjoc
   initialCapPlugins:
   - antisamy-markup-formatter
   - blueocean-rest
@@ -18,6 +19,7 @@ cjoc:
   initialExtraPlugins:
   - configuration-as-code
   - caffeine-api
+  cleanupPvcOnMasterDeletion: false
 masters:
   defaultMasterTemplate:
     jcasc:

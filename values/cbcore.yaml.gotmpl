@@ -8,7 +8,7 @@ OperationsCenter:
       Cpu: 4
   Platform: {{ .Values.platform }}
   HostName: {{ .Values.domain }} 
-  Name: {{ .Values.cjocPath }}
+  Name: {{ .Values.cjoc.path }}
   Ingress:
     Annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -26,6 +26,7 @@ OperationsCenter:
     -Djenkins.install.runSetupWizard=false
     -Dcb.IMProp.fsProfiles=/usr/share/jenkins/fsProfile/custom-profile.json
     -Dcom.cloudbees.opscenter.clouds.kubernetes.KubernetesConfiguration.autoconfigure=false
+    -Dcom.cloudbees.masterprovisioning.kubernetes.KubernetesMasterProvisioning.deleteClaim={{ .Values.cjoc.cleanupPvcOnMasterDeletion }}
   ContainerEnv:
     - name: ldap_manager_pw
       value: {{ .Values.ldapGlobalPassword }}
