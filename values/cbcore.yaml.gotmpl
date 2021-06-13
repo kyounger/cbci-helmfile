@@ -1,11 +1,11 @@
 OperationsCenter:
   Resources:
     Limits:
-      Memory: 3G
-      Cpu: 4
+      Memory: 6G
+      Cpu: 3
     Requests:
-      Memory: 3G
-      Cpu: 4
+      Memory: 6G
+      Cpu: 3
   Platform: {{ .Values.platform }}
   HostName: {{ .Values.domain }} 
   Name: {{ .Values.cjoc.path }}
@@ -78,6 +78,10 @@ OperationsCenter:
                 name: "kubernetes"
             remotingSecurity:
               enabled: true
+            crumbIssuer:
+              standard:
+                excludeClientIPFromCrumb: true
+            numExecutors: 0
             securityRealm:
               ldap:
                 configurations:
