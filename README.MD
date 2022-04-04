@@ -1,4 +1,7 @@
-# CloudBees CI, Entirely As Code — An Opinionated Approach
+# Deprecated
+Hello. If you are reading this, you are likely interested in automating CloudBees CI. Please follow up with your CloudBees contacts (CSM, Account Exec, PS, etc.), as there are newer, better, and most importantly, _supported_ ways of achieving the goals that this solution set out to solve nearly two years ago.
+
+## CloudBees CI, Entirely As Code — An Opinionated Approach
 
 Many of us in the Services organization at CloudBees have worked closely with customers to provide guidance on designing, implementing, and operating their installation of CloudBees CI (CBCI, formerly known as CloudBees Core). While no two customers are alike, there are some approaches that seem to work better than others. This Opinionated Approach is based on several goals and guiding principles. If those are acceptable, this should help automate the operation.
 
